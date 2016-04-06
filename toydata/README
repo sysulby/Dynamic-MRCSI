@@ -1,0 +1,28 @@
+The five example strings in this folder were created by copying snippets from the following two (English) Wikipedia pages:
+
+"Helsinki": http://en.wikipedia.org/w/index.php?title=Helsinki&oldid=642043476
+"Black-capped_kingfisher": http://en.wikipedia.org/w/index.php?title=Black-capped_kingfisheroldid=642457216
+
+The strings were constructed as follows:
+
+string1.txt: The first five paragraphs of "Helsinki"
+
+string2.txt: Same as string1.txt, but the the third paragraph is replaced with "This is a new sentence about a different topic, which does not occur in string1."
+
+string3.txt: Same as string2.txt, but the third paragraph has been replaced with three other paragraphs from "Helsinki"
+
+string4.txt: Same as string4.txt, but the substring "(both 100 km (62 mi) from Helsinki" in the fourth paragraph is replaced with "(both 100 km (62 mi) from Hilsinki"
+
+string5.txt: The first paragraph from "Black-capped_kingfisher"
+
+Consequences for compression with CDAG aare as follows:
+
+1) string1.txt and string5.txt are chosen as a main references
+
+2) string2.txt is compressed against string1.txt (and with few spurious snippets against string5.txt)
+
+3) string3.txt is compressed against string1.txt and string2.txt (and with few spurious snippets against string5.txt)
+
+4) string4.txt is compressed against string3.txt (and with few spurious snippets against string1.txt)
+
+Note that for this small toy example MRCSI instances are larger than the naive indexes (CST /ESA), since MRCSI only pays off for indexing many larger documents. This toy example is only intended to show how to execute MRCSI in general.
