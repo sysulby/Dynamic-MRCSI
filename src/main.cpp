@@ -3,9 +3,10 @@
  * 
  * FileName: main.cpp
  * Author: Beiyu Li <sysulby@gmail.com>
- * Date: 2016-04-06
+ * Date: 2016-04-07
  */
 #include <bits/stdc++.h>
+#include "include/StringDB.h"
 
 using namespace std;
 
@@ -19,20 +20,28 @@ typedef pair<int, int> Pii;
 const int inf = 0x3f3f3f3f;
 const LL infLL = 0x3f3f3f3f3f3f3f3fLL;
 
-const int maxql = 20;
-const int maxk = 5;
+const int maxql = 20;   // max query length
+const int maxk = 5;     // max edit distance error
 
-int main(int argc[], char* argv[])
+int main(int argc, char* argv[])
 {
+        // new string data base
         StringDB *sdb = new StringDB(maxql, maxk);
 
-        sdb->addStringFromDisk("toydata/string1.txt");
-        sdb->addStringFromDisk("toydata/string2.txt");
-        sdb->addStringFromDisk("toydata/string3.txt");
-        sdb->addStringFromDisk("toydata/string4.txt");
-        sdb->addStringFromDisk("toydata/string5.txt");
+        // add text
+        sdb->addStringFromDisk("../toydata/string1.txt");
+        sdb->addStringFromDisk("../toydata/string2.txt");
 
-        sdb->query("Helseinki", 1);
+        // query
+        // sdb->query("Helseinki", 1);
+
+        sdb->addStringFromDisk("../toydata/string3.txt");
+        sdb->addStringFromDisk("../toydata/string4.txt");
+        sdb->addStringFromDisk("../toydata/string5.txt");
+
+        sdb->query("Helseinki", 2);
+
+        cout << sdb->statistics() << endl;
 
         return 0;
 }
