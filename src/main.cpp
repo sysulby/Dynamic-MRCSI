@@ -38,7 +38,9 @@ int main(int argc, char* argv[])
         // query
         // sdb->query("Helseinki", 1);
 
-        cout << sdb->size() << endl;
+        // sdb->addStringFromDisk("../HumGenome/3501.txt");
+
+        cout << sdb->ratio() * 100 << "%" << endl;
 
         return 0;
 }

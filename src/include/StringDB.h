@@ -18,7 +18,7 @@ typedef pair<int, int> Pii;
 extern const int inf;
 
 class StringDB {
-        int count, maxql, maxk;
+        int cnts, cntc, maxql, maxk;
         SAM *pref, *rcsref, *ovl;
         vector<Pii> pseg, rseg, oseg;
         vector<Rcs> comp;
@@ -68,7 +68,7 @@ class StringDB {
                                 int length = -1;
                                 for (int i = pos; i < pos + len; ++i)
                                         length += comp[id][i].length + 1;
-                                Rme rme(id, comp[id][pos].offset, length,
+                                Rme rme(id, comp[id].offset[pos], length,
                                                 comp[id][pos+len-1].mismatch);
                                 seq.insert(it, make_pair(rme, get_rmeid(rme)));
                                 found = true;
@@ -80,7 +80,7 @@ class StringDB {
         }
 
         public:
-        StringDB(int q, int k): count(0), maxql(q), maxk(k),
+        StringDB(int q, int k): cnts(0), cntc(0), maxql(q), maxk(k),
         pref(new SAM()), rcsref(new SAM()), ovl(new SAM()) {}
 
         ~StringDB() { delete pref, delete rcsref, delete ovl; }
@@ -88,19 +88,18 @@ class StringDB {
         void addString(const string &s)
         {
                 Rcs rcs;
-                int id = count++, cost = inf;
+                cntc += s.length();
+                int id = cnts++, cost = inf;
                 if (pref->length()) {
                         compress(s, rcs);
                         cost = rcs.size() * sizeof(Rme);
                 }
                 if (cost > s.length()) {
-                        // add to PREF
                         for (int i = 0; i < s.length(); ++i) pref->append(s[i]);
                         pref->append(0);
                         pseg.push_back(Pii(pref->length(), id));
                         rcs = Rcs(Rme(id, 0, s.length() - 1, s.back()));
                 }
-                // add to COMP
                 comp.push_back(rcs);
                 for (int i = 0; i < rcs.size(); ++i)
                         rcsref->append(alloc_rmeid(rcs[i]));
@@ -112,10 +111,9 @@ class StringDB {
 
         void addStringFromDisk(const char* path)
         {
-                string s, buf;
+                string buf;
                 ifstream fin(path);
-                while (getline(fin, buf)) s += buf + '\n';
-                addString(s);
+                while (getline(fin, buf)) addString(buf);
                 fin.close();
         }
 
@@ -126,12 +124,16 @@ class StringDB {
                 // query in OVERLAP-SAM
         }
 
-        int size()
+        int size() const
         {
                 int size = pref->length();
                 foreach(it,comp) size += it->size() * sizeof(Rme);
                 return size;
         }
+
+        int length() const { return cntc; }
+
+        double ratio() const { return (double)size() / length(); }
 };
 
 #endif // STRINGDB_H_INCLUDED

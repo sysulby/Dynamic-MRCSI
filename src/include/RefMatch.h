@@ -12,10 +12,10 @@ using namespace std;
 
 // Referential match entry
 struct Rme {
-        int refid, start, length, offset;
+        short refid, start, length;
         char mismatch;
 
-        Rme(int id, int s, int l, char m):
+        Rme(short id, short s, short l, char m):
                 refid(id), start(s), length(l), mismatch(m) {}
 
         bool operator==(const Rme &r) const
@@ -30,9 +30,9 @@ struct hash<Rme>
 {
         std::size_t operator()(const Rme &r) const
         {
-                size_t seed = hash<int>()(r.refid);
-                seed = (seed ^ (hash<int>()(r.start) << 1)) >> 1;
-                seed = (seed ^ (hash<int>()(r.length) << 1)) >> 1;
+                size_t seed = hash<short>()(r.refid);
+                seed = (seed ^ (hash<short>()(r.start) << 1)) >> 1;
+                seed = (seed ^ (hash<short>()(r.length) << 1)) >> 1;
                 seed = (seed ^ (hash<char>()(r.mismatch) << 1)) >> 1;
                 return seed;
         }
@@ -40,21 +40,21 @@ struct hash<Rme>
 
 // Referential match sequence
 struct Rcs {
-        int len;
         vector<Rme> seq;
+        vector<int> offset;
 
-        Rcs(): len(0) {}
-        Rcs(const Rme &r): len(0) { push_back(r); }
+        Rcs() {}
+        Rcs(const Rme &r) { push_back(r); }
 
-        int size() { return seq.size(); }
+        int size() const { return seq.size(); }
 
         Rme& operator[](int i) { return seq[i]; }
 
         void push_back(Rme r)
         {
-                r.offset = len;
-                len += r.length + 1;
                 seq.push_back(r);
+                offset.push_back(r.length + 1
+                                + (offset.empty()? 0: offset.back()));
         }
 };
 
