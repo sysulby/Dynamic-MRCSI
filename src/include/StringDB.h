@@ -8,6 +8,7 @@
 #ifndef STRINGDB_H_INCLUDED
 #define STRINGDB_H_INCLUDED
 
+#include "RefMatch.h"
 #include "SufAutomaton.h"
 
 using namespace std;
@@ -16,47 +17,73 @@ typedef pair<int, int> Pii;
 
 extern const int inf;
 
-// Referential match entry
-class Rme {
-        int refid, start, length;
-        char mismatch;
-
-        public:
-        Rme(int id, int s, int l, char m):
-                refid(id), start(s), length(l), mismatch(m) {}
-};
-
-// Referential match sequence
-typedef vector<Rme> Rcs;
-
 class StringDB {
         int count, maxql, maxk;
-        SAM *pref, *overlap;
-        vector<Pii> pseg, oseg;
+        SAM *pref, *rcsref, *ovl;
+        vector<Pii> pseg, rseg, oseg;
         vector<Rcs> comp;
+        unordered_map<Rme, int> rmeid;
+
+        inline int get_rmeid(const Rme &r)
+        { return rmeid.count(r)? rmeid[r]: -1; }
+
+        inline int alloc_rmeid(const Rme &r)
+        { return rmeid.count(r)? rmeid[r]: rmeid[r] = rmeid.size() + 1; }
 
         void compress(const string &s, Rcs &rcs)
         {
+                list<pair<Rme, int> > seq;
                 for (int i = 0; i < s.length();) {
                         int pos = 0, len = 0;
                         pref->lcp(s.c_str() + i, pos, len);
-                        int id = lower_bound(pseg.begin(),
-                                        pseg.end(), Pii(pos, 0))->second;
+                        vector<Pii>::iterator p = upper_bound(pseg.begin(),
+                                        pseg.end(), Pii(pos, inf));
+                        int id = p->second;
+                        if (p != pseg.begin()) pos -= (--p)->first;
                         if (i + len < s.length()) {
-                                rcs.push_back(Rme(id, pos, len, s[i+len]));
+                                Rme rme(id, pos, len, s[i+len]);
+                                seq.push_back(make_pair(rme, get_rmeid(rme)));
                                 i += len + 1;
                         } else {
-                                rcs.push_back(Rme(id, pos, len - 1, s.back()));
+                                Rme rme(id, pos, len - 1, s.back());
+                                seq.push_back(make_pair(rme, get_rmeid(rme)));
                                 i += len;
                         }
                 }
+                while (true) {
+                        bool found = false;
+                        for (list<pair<Rme, int> >::iterator it = seq.begin();
+                                        it != seq.end();) {
+                                int pos = 0, len = 0;
+                                rcsref->lcp(seq, it, pos, len);
+                                if (len <= 1) {
+                                        ++it;
+                                        continue;
+                                }
+                                vector<Pii>::iterator p = upper_bound(
+                                                rseg.begin(), rseg.end(),
+                                                Pii(pos, inf));
+                                int id = p->second;
+                                if (p != rseg.begin()) pos -= (--p)->first;
+                                int length = -1;
+                                for (int i = pos; i < pos + len; ++i)
+                                        length += comp[id][i].length + 1;
+                                Rme rme(id, comp[id][pos].offset, length,
+                                                comp[id][pos+len-1].mismatch);
+                                seq.insert(it, make_pair(rme, get_rmeid(rme)));
+                                found = true;
+                                break;
+                        }
+                        if (!found) break;
+                }
+                foreach(it,seq) rcs.push_back(it->first);
         }
 
         public:
         StringDB(int q, int k): count(0), maxql(q), maxk(k),
-        pref(new SAM()), overlap(new SAM()) {}
+        pref(new SAM()), rcsref(new SAM()), ovl(new SAM()) {}
 
-        ~StringDB() { delete pref; }
+        ~StringDB() { delete pref, delete rcsref, delete ovl; }
 
         void addString(const string &s)
         {
@@ -71,19 +98,24 @@ class StringDB {
                         for (int i = 0; i < s.length(); ++i) pref->append(s[i]);
                         pref->append(0);
                         pseg.push_back(Pii(pref->length(), id));
-                        rcs = Rcs(1, Rme(id, 0, s.length() - 1, s.back()));
+                        rcs = Rcs(Rme(id, 0, s.length() - 1, s.back()));
                 }
                 // add to COMP
                 comp.push_back(rcs);
+                for (int i = 0; i < rcs.size(); ++i)
+                        rcsref->append(alloc_rmeid(rcs[i]));
+                rcsref->append(0);
+                rseg.push_back(Pii(rcsref->length(), id));
                 // update RME-INTERVAL-TREE
                 // update OVERLAP-SAM
         }
 
         void addStringFromDisk(const char* path)
         {
-                string s;
+                string s, buf;
                 ifstream fin(path);
-                while (getline(fin, s)) addString(s);
+                while (getline(fin, buf)) s += buf + '\n';
+                addString(s);
                 fin.close();
         }
 
@@ -94,9 +126,9 @@ class StringDB {
                 // query in OVERLAP-SAM
         }
 
-        int statistics()
+        int size()
         {
-                int size = pref->length() + overlap->length();
+                int size = pref->length();
                 foreach(it,comp) size += it->size() * sizeof(Rme);
                 return size;
         }

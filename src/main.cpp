@@ -31,17 +31,14 @@ int main(int argc, char* argv[])
         // add text
         sdb->addStringFromDisk("../toydata/string1.txt");
         sdb->addStringFromDisk("../toydata/string2.txt");
-
-        // query
-        // sdb->query("Helseinki", 1);
-
         sdb->addStringFromDisk("../toydata/string3.txt");
         sdb->addStringFromDisk("../toydata/string4.txt");
         sdb->addStringFromDisk("../toydata/string5.txt");
 
-        sdb->query("Helseinki", 2);
+        // query
+        // sdb->query("Helseinki", 1);
 
-        cout << sdb->statistics() << endl;
+        cout << sdb->size() << endl;
 
         return 0;
 }

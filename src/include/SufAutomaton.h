@@ -8,6 +8,8 @@
 #ifndef SUFAUTOMATON_H_INCLUDED
 #define SUFAUTOMATON_H_INCLUDED
 
+#include "RefMatch.h"
+
 using namespace std;
 
 #define foreach(i,c) for (__typeof(c.begin()) i = c.begin(); i != c.end(); ++i)
@@ -23,15 +25,14 @@ class SAM {
 
         void release(Node* u)
         {
-                if (!u) return;
-                foreach(it,u->trans) release(it->second);
+                foreach(it,u->ch) release(*it);
                 delete u;
         }
 
-        void dfs(Node *u, int len, vector<int> &pos)
+        void get_pos(Node *u, int len, vector<int> &pos) const
         {
                 if (u->right > 0) pos.push_back(u->right - len);
-                foreach(it,u->ch) dfs(*it, len, pos);
+                foreach(it,u->ch) get_pos(*it, len, pos);
         }
 
         public:
@@ -42,7 +43,7 @@ class SAM {
                 root->len = 0, root->right = -1, root->par = NULL;
         }
 
-        ~SAM() { release(root); }
+        ~SAM() { if (root) release(root); }
 
         int length() const { return count; }
 
@@ -74,28 +75,46 @@ class SAM {
                 last = np;
         }
 
-        void lcp(const char* s, int &pos, int &len)
+        void lcp(const char* s, int &pos, int &len) const
         {
                 Node *p = root;
                 for (int i = 0; s[i]; ++i) {
                         if (p->trans.count(s[i])) {
-                                len = i + 1;
+                                ++len;
                                 p = p->trans[s[i]];
                         } else {
                                 break;
                         }
                 }
-                pos = abs(p->right) - len;
+                if (len) pos = abs(p->right) - len;
         }
 
-        void match(const string &s, vector<int> &pos)
+        void match(const string &s, vector<int> &pos) const
         {
                 Node *p = root;
                 for (int i = 0; i < s.length(); ++i) {
                         if (!p->trans.count(s[i])) return;
                         p = p->trans[s[i]];
                 }
-                dfs(p, s.length(), pos);
+                get_pos(p, s.length(), pos);
+        }
+
+        void lcp(list<pair<Rme, int> > &seq,
+                        list<pair<Rme, int> >::iterator &it,
+                        int &pos, int &len) const
+        {
+                Node *p = root;
+                list<pair<Rme, int> >::iterator i;
+                for (i = it; i != seq.end(); ++i) {
+                        if (p->trans.count(i->second)) {
+                                ++len;
+                                p = p->trans[i->second];
+                        } else {
+                                break;
+                        }
+                }
+                if (len) pos = abs(p->right) - len;
+                if (len > 1) while (it != i) seq.erase(it++);
         }
 };
 
