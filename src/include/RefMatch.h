@@ -11,14 +11,14 @@
 using namespace std;
 
 // Referential match entry
-struct Rme {
+struct RME {
         short refid, start, length;
         char mismatch;
 
-        Rme(short id, short s, short l, char m):
+        RME(short id, short s, short l, char m):
                 refid(id), start(s), length(l), mismatch(m) {}
 
-        bool operator==(const Rme &r) const
+        bool operator==(const RME &r) const
         {
                 return refid == r.refid && start == r.start &&
                         length == r.length && mismatch == r.mismatch;
@@ -26,9 +26,9 @@ struct Rme {
 };
 
 template<>
-struct hash<Rme>
+struct hash<RME>
 {
-        std::size_t operator()(const Rme &r) const
+        std::size_t operator()(const RME &r) const
         {
                 size_t seed = hash<short>()(r.refid);
                 seed = (seed ^ (hash<short>()(r.start) << 1)) >> 1;
@@ -39,18 +39,18 @@ struct hash<Rme>
 };
 
 // Referential match sequence
-struct Rcs {
-        vector<Rme> seq;
+struct RCS {
+        vector<RME> seq;
         vector<int> offset;
 
-        Rcs() {}
-        Rcs(const Rme &r) { push_back(r); }
+        RCS() {}
+        RCS(const RME &r) { push_back(r); }
 
         int size() const { return seq.size(); }
 
-        Rme& operator[](int i) { return seq[i]; }
+        RME& operator[](int i) { return seq[i]; }
 
-        void push_back(Rme r)
+        void push_back(RME r)
         {
                 offset.push_back(seq.empty()? 0:
                                 offset.back() + seq.back().length + 1);

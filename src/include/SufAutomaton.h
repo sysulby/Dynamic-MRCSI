@@ -99,12 +99,12 @@ class SAM {
                 get_pos(p, s.length(), pos);
         }
 
-        void lcp(list<pair<Rme, int> > &seq,
-                        list<pair<Rme, int> >::iterator &it,
+        void lcp(list<pair<RME, int> > &seq,
+                        list<pair<RME, int> >::iterator &it,
                         int &pos, int &len) const
         {
                 Node *p = root;
-                list<pair<Rme, int> >::iterator i;
+                list<pair<RME, int> >::iterator i;
                 for (i = it; i != seq.end(); ++i) {
                         if (p->trans.count(i->second)) {
                                 ++len;

@@ -22,19 +22,19 @@ class StringDB {
         int cnts, cntc, maxql, maxk;
         SAM *pref, *rcsref, *ovlmap;
         vector<Pii> pseg, rseg, oseg;
-        vector<Rcs> comp;
+        vector<RCS> comp;
         vector<IntTree*> rmemap;
-        unordered_map<Rme, int> rmeid;
+        unordered_map<RME, int> rmeid;
 
-        inline int get_rmeid(const Rme &r)
+        inline int get_rmeid(const RME &r)
         { return rmeid.count(r)? rmeid[r]: -1; }
 
-        inline int alloc_rmeid(const Rme &r)
+        inline int alloc_rmeid(const RME &r)
         { return rmeid.count(r)? rmeid[r]: rmeid[r] = rmeid.size() + 1; }
 
-        void compress(const string &s, Rcs &rcs)
+        void compress(const string &s, RCS &rcs)
         {
-                list<pair<Rme, int> > seq;
+                list<pair<RME, int> > seq;
                 for (int i = 0; i < s.length();) {
                         int pos = 0, len = 0;
                         pref->lcp(s.c_str() + i, pos, len);
@@ -43,18 +43,18 @@ class StringDB {
                         int id = p->second;
                         if (p != pseg.begin()) pos -= (--p)->first;
                         if (i + len < s.length()) {
-                                Rme rme(id, pos, len, s[i+len]);
+                                RME rme(id, pos, len, s[i+len]);
                                 seq.push_back(make_pair(rme, get_rmeid(rme)));
                                 i += len + 1;
                         } else {
-                                Rme rme(id, pos, len - 1, s.back());
+                                RME rme(id, pos, len - 1, s.back());
                                 seq.push_back(make_pair(rme, get_rmeid(rme)));
                                 i += len;
                         }
                 }
                 while (true) {
                         bool found = false;
-                        for (list<pair<Rme, int> >::iterator it = seq.begin();
+                        for (list<pair<RME, int> >::iterator it = seq.begin();
                                         it != seq.end();) {
                                 int pos = 0, len = 0;
                                 rcsref->lcp(seq, it, pos, len);
@@ -70,7 +70,7 @@ class StringDB {
                                 int length = -1;
                                 for (int i = pos; i < pos + len; ++i)
                                         length += comp[id][i].length + 1;
-                                Rme rme(id, comp[id].offset[pos], length,
+                                RME rme(id, comp[id].offset[pos], length,
                                                 comp[id][pos+len-1].mismatch);
                                 seq.insert(it, make_pair(rme, get_rmeid(rme)));
                                 found = true;
@@ -90,18 +90,18 @@ class StringDB {
 
         void addString(const string &s)
         {
-                Rcs rcs;
+                RCS rcs;
                 cntc += s.length();
                 int id = cnts++, cost = inf;
                 if (pref->length()) {
                         compress(s, rcs);
-                        cost = rcs.size() * sizeof(Rme);
+                        cost = rcs.size() * sizeof(RME);
                 }
                 if (cost > s.length()) {
                         for (int i = 0; i < s.length(); ++i) pref->append(s[i]);
                         pref->append(0);
                         pseg.push_back(Pii(pref->length(), id));
-                        rcs = Rcs(Rme(id, 0, s.length() - 1, s.back()));
+                        rcs = RCS(RME(id, 0, s.length() - 1, s.back()));
                 }
                 comp.push_back(rcs);
                 for (int i = 0; i < rcs.size(); ++i)
@@ -138,7 +138,7 @@ class StringDB {
         int size() const
         {
                 int size = pref->length();
-                foreach(it,comp) size += it->size() * sizeof(Rme);
+                foreach(it,comp) size += it->size() * sizeof(RME);
                 return size;
         }
 
