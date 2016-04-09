@@ -29,10 +29,10 @@ class SAM {
                 delete u;
         }
 
-        void get_pos(Node *u, int len, vector<int> &pos) const
+        void get_poss(Node *u, int len, vector<int> &poss) const
         {
-                if (u->right > 0) pos.push_back(u->right - len);
-                foreach(it,u->ch) get_pos(*it, len, pos);
+                if (u->right > 0) poss.push_back(u->right - len);
+                foreach(it,u->ch) get_poss(*it, len, poss);
         }
 
         public:
@@ -89,14 +89,14 @@ class SAM {
                 if (len) pos = abs(p->right) - len;
         }
 
-        void match(const string &s, vector<int> &pos) const
+        void match(const string &s, vector<int> &poss) const
         {
                 Node *p = root;
                 for (int i = 0; i < s.length(); ++i) {
                         if (!p->trans.count(s[i])) return;
                         p = p->trans[s[i]];
                 }
-                get_pos(p, s.length(), pos);
+                get_poss(p, s.length(), poss);
         }
 
         void lcp(list<pair<RME, int> > &seq,

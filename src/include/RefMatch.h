@@ -58,4 +58,9 @@ struct RCS {
         }
 };
 
+// Match result
+struct Match {
+        short refid, start, length, score;
+};
+
 #endif // REFMATCH_H_INCLUDED

@@ -21,6 +21,7 @@ extern const int inf;
 class StringDB {
         int cnts, cntc, dlt;
         SAM *pref, *rcsref, *ovlmap;
+        string pstr, ostr;
         vector<Pii> pseg, rseg;
         vector<pair<int, Pii> > oseg;
         vector<RCS> comp;
@@ -84,6 +85,113 @@ class StringDB {
                 foreach(it,seq) rcs.push_back(it->first);
         }
 
+        void dp_pre(int k, const string &s, int p,
+                        const string &t, int l, int r, vector<Pii> &ret)
+        {
+                vector<int> f[2] = {
+                        vector<int>(r - l + 1),
+                        vector<int>(r - l + 1)
+                };
+                int o = 0;
+                for (int j = 0; j <= r - l; ++j) f[o][j] = j;
+                for (int i = 1; i <= p; ++i) {
+                        f[o^=1][0] = i;
+                        for (int j = 1; j <= r - l; ++j) {
+                                if (r - j < 0 || !t[r-j]) break;
+                                f[o][j] = min({
+                                                f[o^1][j] + 1,
+                                                f[o][j-1] + 1,
+                                                f[o^1][j-1] + (s[p-i] != t[r-j])
+                                                });
+                        }
+                }
+                for (int j = 0; j <= r - l; ++j) {
+                        if (r - j < 0 || !t[r-j]) break;
+                        if (f[o][j] <= k)
+                                ret.push_back(Pii(f[o][j], r - j));
+                }
+                sort(ret.begin(), ret.end());
+        }
+
+        void dp_suf(int k, const string &s, int p,
+                        const string &t, int l, int r, vector<Pii> &ret)
+        {
+                vector<int> f[2] = {
+                        vector<int>(r - l + 1),
+                        vector<int>(r - l + 1)
+                };
+                int o = 0;
+                for (int j = 0; j <= r - l; ++j) f[o][j] = j;
+                for (int i = 1; i <= s.length() - p; ++i) {
+                        f[o^=1][0] = i;
+                        for (int j = 1; j <= r - l; ++j) {
+                                if (l + j - 1 >= t.length() || !t[l+j-1]) break;
+                                f[o][j] = min({
+                                                f[o^1][j] + 1,
+                                                f[o][j-1] + 1,
+                                                f[o^1][j-1]
+                                                + (s[p+i-1] != t[l+j-1])
+                                                });
+                        }
+                }
+                for (int j = 0; j <= r - l; ++j) {
+                        if (l + j - 1 >= t.length() || !t[l+j-1]) break;
+                        if (f[o][j] <= k)
+                                ret.push_back(Pii(f[o][j], l + j - 1));
+                }
+                sort(ret.begin(), ret.end());
+        }
+
+        void combine(int id, int offset, int k,
+                        const vector<Pii> &fpre, const vector<Pii> &fsuf,
+                        vector<Match> &ret)
+        {
+                for (int i = 0, j = fsuf.size() - 1; i < fpre.size(); ++i) {
+                        while (j >= 0 && fpre[i].first + fsuf[j].first > k) --j;
+                        for (int k = j; k >= 0; --k) {
+                                int start = fpre[i].second - offset,
+                                    len = fsuf[k].second - fpre[i].second + 1,
+                                    score = fpre[i].first + fsuf[k].first;
+                                cout << id << " " << start << " " << len << " " <<
+                                        str[id].substr(start, len) << " " <<
+                                        score << endl;
+                        }
+                }
+        }
+
+        void match_pref(const string &s, int k, vector<Match> &ret)
+        {
+                int m = s.length();
+                for (int i = 0, l = 0; i < k + 1; ++i) {
+                        int r = m * (i + 1) / (k + 1) - l;
+                        string seed = s.substr(l, r);
+                        vector<int> poss;
+                        pref->match(seed, poss);
+                        foreach(it,poss) {
+                                int pos = *it;
+                                vector<Pii> fpre, fsuf;
+                                dp_pre(k, s, l, pstr, pos - l - k, pos, fpre);
+                                dp_suf(k, s, l + r, pstr,
+                                                pos + r, pos + m - l + k, fsuf);
+                                vector<Pii>::iterator p = upper_bound(
+                                                pseg.begin(), pseg.end(),
+                                                Pii(pos, inf));
+                                int id = p->second, offset =
+                                        (p == pseg.begin()? 0: (--p)->first);
+                                combine(id, offset, k, fpre, fsuf, ret);
+                        }
+                        l += r;
+                }
+        }
+
+        void bfs_rmemap(vector<Match> &ret)
+        {
+        }
+
+        void match_ovlmap(const string &s, int k, vector<Match> &ret)
+        {
+        }
+
         public:
         StringDB(int ql, int ed):
                 cnts(0), cntc(0), dlt(ql + ed - 1),
@@ -104,8 +212,12 @@ class StringDB {
                 }
                 if (cost > s.length()) {
                         // add to Pref
-                        for (int i = 0; i < s.length(); ++i) pref->append(s[i]);
+                        for (int i = 0; i < s.length(); ++i) {
+                                pref->append(s[i]);
+                                pstr += s[i];
+                        }
                         pref->append(0);
+                        pstr += (char)0;
                         pseg.push_back(Pii(pref->length(), id));
                         rcs = RCS(RME(id, 0, s.length() - 1, s.back()));
                 }
@@ -134,8 +246,12 @@ class StringDB {
                                 }
                         }
                         l = max(l, 0), r = min(r, (int)s.length() - 1);
-                        for (int j = l; j <= r; ++j) ovlmap->append(s[j]);
+                        for (int j = l; j <= r; ++j) {
+                                ovlmap->append(s[j]);
+                                ostr += s[j];
+                        }
                         ovlmap->append(0);
+                        ostr += (char)0;
                         oseg.push_back(make_pair(ovlmap->length(), Pii(id, l)));
                 }
                 str[id] = s;
@@ -152,28 +268,15 @@ class StringDB {
 
         void query(const string &s, int k)
         {
-                vector<int> vec;
-                // query in Pref
-                pref->match(s, vec);
-                sort(vec.begin(), vec.end());
-                foreach(it,vec) {
-                        int pos = *it;
-                        vector<Pii>::iterator p = upper_bound(pseg.begin(),
-                                        pseg.end(), Pii(pos, inf));
-                        int id = p->second;
-                        if (p != pseg.begin()) pos -= (--p)->first;
-                        cout << id << " " << pos << " ";
-                        for (int i = 0; i < s.length(); ++i)
-                                putchar(str[id][pos+i]);
-                        puts("");
-                }
-                // query in REMMAP
-                // query in OVERLAPMAP
+                vector<Match> ret;
+                match_pref(s, k, ret);
+                bfs_rmemap(ret);
+                match_ovlmap(s, k, ret);
         }
 
         int size() const
         {
-                int size = pref->length() + ovlmap->length();
+                int size = pstr.length() + ostr.length();
                 foreach(it,comp) size += it->size() * sizeof(RME);
                 return size;
         }
