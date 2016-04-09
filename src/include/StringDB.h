@@ -91,6 +91,7 @@ class StringDB {
 
         ~StringDB() { delete pref, delete rcsref, delete ovlmap; }
 
+        string str[10000];
         void addString(const string &s)
         {
                 RCS rcs;
@@ -115,13 +116,13 @@ class StringDB {
                         rcsref->append(alloc_rmeid(rcs[i]));
                 rcsref->append(0);
                 rseg.push_back(Pii(rcsref->length(), id));
-                // update RMEmap
+                // update RMEMAP
                 rmemap.push_back(new IntTree());
                 for (int i = 0; i < rcs.size(); ++i)
                         rmemap[rcs[i].refid]->insert(rcs[i].start,
                                         rcs[i].start + rcs[i].length - 1,
                                         id, rcs.offset[i]);
-                // update OVERLAPmap
+                // update OVERLAPMAP
                 for (int i = 0; i < rcs.size() - 1;) {
                         int l = rcs.offset[i] + rcs[i].length - dlt, r;
                         for (int j = i + 1; j < rcs.size(); ++j) {
@@ -137,30 +138,42 @@ class StringDB {
                         ovlmap->append(0);
                         oseg.push_back(make_pair(ovlmap->length(), Pii(id, l)));
                 }
+                str[id] = s;
         }
 
         void addStringFromDisk(const char* path)
         {
-                string buf;
+                string str, buf;
                 ifstream fin(path);
-                int cnt = 0;
-                while (getline(fin, buf)) {
-                        if (++cnt > 16) break;
-                        addString(buf);
-                }
+                while (getline(fin, buf)) str += buf + '\n';
+                addString(str);
                 fin.close();
         }
 
         void query(const string &s, int k)
         {
-                // query in PREF-SAM
-                // query in REM-INTERVAL-TREE
-                // query in OVERLAP-SAM
+                vector<int> vec;
+                // query in Pref
+                pref->match(s, vec);
+                sort(vec.begin(), vec.end());
+                foreach(it,vec) {
+                        int pos = *it;
+                        vector<Pii>::iterator p = upper_bound(pseg.begin(),
+                                        pseg.end(), Pii(pos, inf));
+                        int id = p->second;
+                        if (p != pseg.begin()) pos -= (--p)->first;
+                        cout << id << " " << pos << " ";
+                        for (int i = 0; i < s.length(); ++i)
+                                putchar(str[id][pos+i]);
+                        puts("");
+                }
+                // query in REMMAP
+                // query in OVERLAPMAP
         }
 
         int size() const
         {
-                int size = pref->length();
+                int size = pref->length() + ovlmap->length();
                 foreach(it,comp) size += it->size() * sizeof(RME);
                 return size;
         }
