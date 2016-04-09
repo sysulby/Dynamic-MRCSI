@@ -19,9 +19,10 @@ typedef pair<int, int> Pii;
 extern const int inf;
 
 class StringDB {
-        int cnts, cntc, maxql, maxk;
+        int cnts, cntc, dlt;
         SAM *pref, *rcsref, *ovlmap;
-        vector<Pii> pseg, rseg, oseg;
+        vector<Pii> pseg, rseg;
+        vector<pair<int, Pii> > oseg;
         vector<RCS> comp;
         vector<IntTree*> rmemap;
         unordered_map<RME, int> rmeid;
@@ -34,6 +35,7 @@ class StringDB {
 
         void compress(const string &s, RCS &rcs)
         {
+                // compress from Pref
                 list<pair<RME, int> > seq;
                 for (int i = 0; i < s.length();) {
                         int pos = 0, len = 0;
@@ -52,6 +54,7 @@ class StringDB {
                                 i += len;
                         }
                 }
+                // compress from RCSref
                 while (true) {
                         bool found = false;
                         for (list<pair<RME, int> >::iterator it = seq.begin();
@@ -82,8 +85,8 @@ class StringDB {
         }
 
         public:
-        StringDB(int q, int k):
-                cnts(0), cntc(0), maxql(q), maxk(k),
+        StringDB(int ql, int ed):
+                cnts(0), cntc(0), dlt(ql + ed - 1),
                 pref(new SAM()), rcsref(new SAM()), ovlmap(new SAM()) {}
 
         ~StringDB() { delete pref, delete rcsref, delete ovlmap; }
@@ -94,26 +97,46 @@ class StringDB {
                 cntc += s.length();
                 int id = cnts++, cost = inf;
                 if (pref->length()) {
+                        // try compress
                         compress(s, rcs);
                         cost = rcs.size() * sizeof(RME);
                 }
                 if (cost > s.length()) {
+                        // add to Pref
                         for (int i = 0; i < s.length(); ++i) pref->append(s[i]);
                         pref->append(0);
                         pseg.push_back(Pii(pref->length(), id));
                         rcs = RCS(RME(id, 0, s.length() - 1, s.back()));
                 }
+                // add to COMP
                 comp.push_back(rcs);
+                // add to RCSref
                 for (int i = 0; i < rcs.size(); ++i)
                         rcsref->append(alloc_rmeid(rcs[i]));
                 rcsref->append(0);
                 rseg.push_back(Pii(rcsref->length(), id));
+                // update RMEmap
                 rmemap.push_back(new IntTree());
                 for (int i = 0; i < rcs.size(); ++i)
                         rmemap[rcs[i].refid]->insert(rcs[i].start,
                                         rcs[i].start + rcs[i].length - 1,
                                         id, rcs.offset[i]);
-                // update OVERLAP-SAM
+                // update OVERLAPmap
+                for (int i = 0; i < rcs.size() - 1;) {
+                        int l = rcs.offset[i] + rcs[i].length - dlt, r;
+                        for (int j = i + 1; j < rcs.size(); ++j) {
+                                if (j == rcs.size() - 1 ||
+                                                rcs[i].length > dlt * 2) {
+                                        r = rcs.offset[j] + dlt;
+                                        i = j;
+                                        break;
+                                }
+                        }
+                        l = max(l, 0), r = min(r, (int)s.length() - 1);
+                        for (int j = l; j <= r; ++j) ovlmap->append(s[j]);
+                        ovlmap->append(0);
+                        oseg.push_back(make_pair(ovlmap->length(), Pii(id, l)));
+                }
         }
 
         void addStringFromDisk(const char* path)
