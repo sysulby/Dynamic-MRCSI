@@ -70,13 +70,13 @@ class IntTree {
                 maintain(u, d), u->update();
         }
 
-        void query(Node *u, int l, int r, vector<Pii> &pos)
+        void query(Node *u, int l, int r, vector<Pii> &poss)
         {
                 if (u == null || u->maxr < r) return;
                 if (u->left <= l && r <= u->right)
-                        pos.push_back(Pii(u->id, u->offset + l - u->left));
-                query(u->ch[0], l, r, pos);
-                if (u->left <= l) query(u->ch[1], l, r, pos);
+                        poss.push_back(Pii(u->id, u->offset + l - u->left));
+                query(u->ch[0], l, r, poss);
+                if (u->left <= l) query(u->ch[1], l, r, poss);
         }
 
         public:
@@ -87,7 +87,7 @@ class IntTree {
 
         void insert(int l, int r, int i, int o) { insert(root, l, r, i, o); }
 
-        void query(int l, int r, vector<Pii> &pos) { query(root, l, r, pos); }
+        void query(int l, int r, vector<Pii> &poss) { query(root, l, r, poss); }
 };
 
 #endif // INTERVALTREE_H_INCLUDED

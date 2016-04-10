@@ -36,9 +36,7 @@ int main(int argc, char* argv[])
         sdb->addStringFromDisk("../toydata/string5.txt");
 
         // query
-        sdb->query("Helseinki", 1);
-
-        cout << sdb->ratio() * 100 << "%" << endl;
+        sdb->query("Helseinki", 2);
 
         return 0;
 }

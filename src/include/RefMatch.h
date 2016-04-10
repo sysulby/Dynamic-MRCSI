@@ -15,8 +15,8 @@ struct RME {
         short refid, start, length;
         char mismatch;
 
-        RME(short id, short s, short l, char m):
-                refid(id), start(s), length(l), mismatch(m) {}
+        RME(short i, short s, short l, char m):
+                refid(i), start(s), length(l), mismatch(m) {}
 
         bool operator==(const RME &r) const
         {
@@ -61,6 +61,16 @@ struct RCS {
 // Match result
 struct Match {
         short refid, start, length, score;
+
+        Match(short i, short s, short l, short c):
+                refid(i), start(s), length(l), score(c) {}
+
+        bool operator<(const Match &m) const
+        {
+                if (refid ^ m.refid) return refid < m.refid;
+                if (start ^ m.start) return start < m.start;
+                return length < m.length;
+        }
 };
 
 #endif // REFMATCH_H_INCLUDED

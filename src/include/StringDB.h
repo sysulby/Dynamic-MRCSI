@@ -146,17 +146,17 @@ class StringDB {
                         const vector<Pii> &fpre, const vector<Pii> &fsuf,
                         vector<Match> &ret)
         {
+                set<Match> pre_ret(ret.begin(), ret.end());
                 for (int i = 0, j = fsuf.size() - 1; i < fpre.size(); ++i) {
                         while (j >= 0 && fpre[i].first + fsuf[j].first > k) --j;
                         for (int k = j; k >= 0; --k) {
                                 int start = fpre[i].second - offset,
                                     len = fsuf[k].second - fpre[i].second + 1,
                                     score = fpre[i].first + fsuf[k].first;
-                                cout << id << " " << start << " " << len << " " <<
-                                        str[id].substr(start, len) << " " <<
-                                        score << endl;
+                                pre_ret.insert(Match(id, start, len, score));
                         }
                 }
+                ret = vector<Match>(pre_ret.begin(), pre_ret.end());
         }
 
         void match_pref(const string &s, int k, vector<Match> &ret)
@@ -186,10 +186,48 @@ class StringDB {
 
         void bfs_rmemap(vector<Match> &ret)
         {
+                set<Match> pre_ret(ret.begin(), ret.end());
+                for (int i = 0; i < ret.size(); ++i) {
+                        vector<Pii> poss;
+                        rmemap[ret[i].refid]->query(ret[i].start,
+                                        ret[i].start + ret[i].length - 1, poss);
+                        foreach(it,poss) {
+                                Match m(it->first, it->second,
+                                                ret[i].length, ret[i].score);
+                                if (!pre_ret.count(m)) {
+                                        pre_ret.insert(m);
+                                        ret.push_back(m);
+                                }
+                        }
+                }
+                ret = vector<Match>(pre_ret.begin(), pre_ret.end());
         }
 
         void match_ovlmap(const string &s, int k, vector<Match> &ret)
         {
+                int m = s.length();
+                for (int i = 0, l = 0; i < k + 1; ++i) {
+                        int r = m * (i + 1) / (k + 1) - l;
+                        string seed = s.substr(l, r);
+                        vector<int> poss;
+                        ovlmap->match(seed, poss);
+                        foreach(it,poss) {
+                                int pos = *it;
+                                vector<Pii> fpre, fsuf;
+                                dp_pre(k, s, l, ostr, pos - l - k, pos, fpre);
+                                dp_suf(k, s, l + r, ostr,
+                                                pos + r, pos + m - l + k, fsuf);
+                                vector<pair<int, Pii> >::iterator p =
+                                        upper_bound(oseg.begin(), oseg.end(),
+                                                        make_pair(pos,
+                                                                Pii(inf, inf)));
+                                int id = p->second.first,
+                                    offset = -p->second.second;
+                                if (p != oseg.begin()) offset += (--p)->first;
+                                combine(id, offset, k, fpre, fsuf, ret);
+                        }
+                        l += r;
+                }
         }
 
         public:
@@ -199,7 +237,6 @@ class StringDB {
 
         ~StringDB() { delete pref, delete rcsref, delete ovlmap; }
 
-        string str[10000];
         void addString(const string &s)
         {
                 RCS rcs;
@@ -254,7 +291,6 @@ class StringDB {
                         ostr += (char)0;
                         oseg.push_back(make_pair(ovlmap->length(), Pii(id, l)));
                 }
-                str[id] = s;
         }
 
         void addStringFromDisk(const char* path)
@@ -264,6 +300,8 @@ class StringDB {
                 while (getline(fin, buf)) str += buf + '\n';
                 addString(str);
                 fin.close();
+                cout << "Compress ratio: " << ratio() * 100 << "%" << endl;
+                cout << endl;
         }
 
         void query(const string &s, int k)
@@ -272,6 +310,20 @@ class StringDB {
                 match_pref(s, k, ret);
                 bfs_rmemap(ret);
                 match_ovlmap(s, k, ret);
+                cout << "Match with " << ret.size() << " substring(s):" << endl;
+                cout << string(32, '-') << endl;
+                cout << setw(8) << "refid " <<
+                        setw(8) << "start " <<
+                        setw(8) << "length " <<
+                        setw(8) << "score " << endl;
+                cout << string(32, '-') << endl;
+                foreach(it,ret) cout <<
+                        setw(7) << it->refid << " " <<
+                        setw(7) << it->start << " " <<
+                        setw(7) << it->length << " " <<
+                        setw(7) << it->score << " " << endl;
+                cout << string(32, '-') << endl;
+                cout << endl;
         }
 
         int size() const

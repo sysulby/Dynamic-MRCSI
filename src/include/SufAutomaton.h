@@ -89,16 +89,6 @@ class SAM {
                 if (len) pos = abs(p->right) - len;
         }
 
-        void match(const string &s, vector<int> &poss) const
-        {
-                Node *p = root;
-                for (int i = 0; i < s.length(); ++i) {
-                        if (!p->trans.count(s[i])) return;
-                        p = p->trans[s[i]];
-                }
-                get_poss(p, s.length(), poss);
-        }
-
         void lcp(list<pair<RME, int> > &seq,
                         list<pair<RME, int> >::iterator &it,
                         int &pos, int &len) const
@@ -115,6 +105,16 @@ class SAM {
                 }
                 if (len) pos = abs(p->right) - len;
                 if (len > 1) while (it != i) seq.erase(it++);
+        }
+
+        void match(const string &s, vector<int> &poss) const
+        {
+                Node *p = root;
+                for (int i = 0; i < s.length(); ++i) {
+                        if (!p->trans.count(s[i])) return;
+                        p = p->trans[s[i]];
+                }
+                get_poss(p, s.length(), poss);
         }
 };
 
