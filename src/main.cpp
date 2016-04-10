@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
         sdb->addStringFromDisk("../toydata/string5.txt");
 
         // query
-        sdb->query("Helseinki", 2);
+        sdb->query("Helseinki", 1);
 
         return 0;
 }
