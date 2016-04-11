@@ -300,7 +300,7 @@ class StringDB {
                 while (getline(fin, buf)) str += buf + '\n';
                 addString(str);
                 fin.close();
-                cout << "Compress ratio: " << ratio() * 100 << "%" << endl;
+                cout << "Compression ratio: " << ratio() * 100 << "%" << endl;
                 cout << endl;
         }
 
