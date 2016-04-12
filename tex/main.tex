@@ -123,11 +123,95 @@
 
 
 \subsection{字符串压缩}
+字符串压缩是计算机科学及相关领域的经典问题。一种与本文相关的压缩方式，称为基于引用的压缩算法[21, 30]，是将被压缩串替换为由其他串的片段构成的引用序列。压缩率取决于字符串间的相似程度，相似度越高则压缩的效果越好。对于某些基因片段来说，这一比率甚至可以达到1,000:1[36]。
+
+
+
+\subsection{半结构化文档压缩}
+对于倒排文档[4]的压缩一般应用于文本文档的储存中，主要思路是将所有出现的词组用标准压缩方式进行压缩，再基于词组进行索引。该方法对于大多数资料有较高的压缩效率[16]，但并不支持字符串的近似检索。
+
+
+
+\subsection{基于特殊领域的索引压缩}
+对于字符串集合的管理在生物学中十分重要。最近，越来越多的算法致力于用树形的引用结构压缩基因组，并提供近似搜索的可能。该方法可以达到极高的压缩率，但对于大量的长字符串，压缩速度较低。其次，由于检索基于筛选出的特定序列，因此会遗漏部分结果。
 
 
 
 \section{本文工作}
-本文结合了前人的研究结果，尝试构建动态的多引用可搜索索引模型，支持动态扩展的字符串集合，通过多引用提高压缩率，自动决策引用的选择以及提供高效的搜索策略。构建思路的难点在于：1）每次要在原有结构的基础上进行简单修改即可完成更新，需要适合的数据结构；2）每个引用串可以引用多个不同的索引，需要在字符串集合中进行快速匹配，设计尽量优化空间的选择策略；3）需要快速的k近似匹配算法，以及合适的数据结构维护引用的关系，从而递推出全部结果；4）特殊情况的处理。下面我们将对上述问题依次讨论。
+本文结合了前人的研究结果，尝试构建动态的多引用可搜索索引模型，支持动态扩展的字符串集合，通过多引用提高压缩率，自动决策引用的选择以及提供高效的搜索策略。构建思路的难点在于：1）每次要在原有结构的基础上进行简单修改即可完成更新，需要适合的数据结构；2）每个引用串可以引用多个不同的索引，需要在字符串集合中进行快速匹配，并设计尽量优化空间的选择策略；3）需要快速的k近似匹配算法，以及合适的数据结构维护引用的关系，从而递推出全部结果；4）特殊情况的处理。\par
+下面我们将对上述问题依次讨论。
+
+
+
+\chapter{压缩与索引}
+这里我们介绍多引用索引结构的具体细节，随后我们建立简单的只通过主引用索引的结构，在此基础上再构建基于DAG（Directed Acyclic Graphs）的层次化引用。
+
+
+
+\section{符号定义}
+首先我们介绍一下本章节用到的定义及符号表示。\par
+一个字符串$s$表示一个关于字符集$\Sigma$的有限序列，长度用$|s|$表示。两个字符串的连接用$s \circ t$表示。从下标$i$开始的长度为$n$的字符串用$s(i, n)$表示，特别的对于长度为$1$的子串（即一个字符）用$s(i)$表示，注意这里的下标从0开始。对于两个字符串$s$与$t$，如果他们之间的编辑距离不超过k，即$s$可以通过至多k次插入、修改、删除操作变为$t$，则称之$s$与$t$为k近似，记作$s \sim_{k} t$。\par
+对于一个索引，我们用$RME$（Referential Match Entry）来表示，是由$(refid, start, length, mismatch)$组成的元组，其中$refid$是被引用串id，$start$表示起始位置，$length$表示长度，$mismatch$表示失配处的字符，即表示字符串$s_{refid}(start, length) \circ mismatch$。\par
+对于一个压缩字符串，我们用$RCS$（Referential Compression Sequence）来表示，同时记录下其中每个$RME$的前缀长度$offset_{i}$。
+
+
+
+\section{索引结构}
+通常来说，在索引结构的字符串集合中，有一部分字符串是不经压缩直接保存的，称为主引用集合（$PREF$）。除此之外，其他字符串都直接或间接使用主引用的子串作为索引，称为压缩集合（$COMP$）。\par
+需要注意的几点是，这里的主引用集合中可以存在多个字符串。这样的好处在于，由于主引用集合中的子串被引用的概率较高，可以提高压缩率。在储存时，只有主引用直接保存原文，其他字符串只保存$RCS$形式的索引信息。由于主引用集合一般较小，故大部分字符串还是以索引的形式保存的。为了方便实现，一般将主引用集合中的字符串也加入压缩集合中。其次，不是只有主引用才可以作为索引，每个串都可以被引用。这样可以防止主引用集合过于庞大，因为主引用集合是未经压缩的。但必须保证的是，互相之间的引用关系不会形成环。\par
+下面，我们来看一个简单索引结构的构建。
+
+
+
+\section{简单索引}
+在最简单的版本中，每个串都只以主引用作为索引。\par
+这里有一个样例，若字符串集合$S = \{s_{1}, s_{2}, ... s_{6}\}$，其中：\par
+\hspace{1cm}$s_{1}$ = Aho–Corasick Automaton, $s_{2}$ = Aho/Corasick,\par
+\hspace{1cm}$s_{3}$ = Aho/Corasick Automaton, $s_{4}$ = Aho/Corasick Automata,\par
+\hspace{1cm}$s_{5}$ = Link-cut Tree, $s_{6}$ = LinkCut Tree.\par
+对于$s_{2}$来说，引用$s_{1}$构成的$RCS$序列为$[(1, 0, 3, /), (1, 4, 7, k)]$，因为$s_{2} = s_{1}(0, 3) \circ / \circ s_{1}(4, 7) \circ k$。但对于$s_{5}$来说，这样显然就不合适了。因此，我们选择$s_{1}$与$s_{5}$作为主引用，即$PREF = \{s_{1}, s_{5}\}$。此时我们得到：\par
+\hspace{1cm}$comp(s_{1}, \{s_{1}\}) = [(1, 0, 21, n)]$\par
+\hspace{1cm}$comp(s_{2}, \{s_{1}\}) = [(1, 0, 3, /), (1, 4, 7, k)]$\par
+\hspace{1cm}$comp(s_{3}, \{s_{1}\}) = [(1, 0, 3, /), (1, 4, 17, n)]$\par
+\hspace{1cm}$comp(s_{4}, \{s_{1}\}) = [(1, 0, 3, /), (1, 4, 16, a)]$\par
+\hspace{1cm}$comp(s_{5}, \{s_{5}\}) = [(5, 0, 12, e)]$\par
+\hspace{1cm}$comp(s_{6}, \{s_{5}\}) = [(5, 0, 4, C), (5, 6, 6, e)]$\par
+他们之间的引用关系如图\ref{imag_csimple}所示。\par
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.3]{image/err_ref.png}
+\caption{简单索引}\label{imag_csimple}
+\end{figure}
+
+下面，我们来介绍构建的具体算法。\par
+在初始状态下，有$PREF = \emptyset$，$COMP = \emptyset$。随后加入$s_{1}$时，由于$PREF$为空，$s_{1}$无法选择任何引用，故将$s_{1}$加入$PREF$，得到$PREF = \{s_{1}\}$，$COMP = \{s_{1}\}$。在加入$s_{2}$时我们有两种选择：1）将$s_{2}$加入$PREF$；2）以$s_{1}$作为引用构建索引。显然，当$s_{1}$与$s_{2}$较为相似时，选择后者较优，这时我们得到$PREF = \{s_{1}\}$，$COMP = \{s_{1}, s_{2}\}$。否则选择前者，此时$PREF = \{s_{1}, s_{2}\}$，$COMP = \{s_{1}, s_{2}\}$。加入$s_{3}$时，要先与$PREF$中的所有主引用比较相似度，再进行决策。\par
+然而相似度的概念过于主观，因此我们的算法需要一定的策略来选择加入的方式，流程如算法\ref{algo_csimple}所示。\par
+
+\begin{algorithm}[H]
+	\SetKwData{PREF}{PREF}\SetKwData{COMP}{COMP}\SetKwData{rcs}{rcs}\SetKwData{cost}{cost}
+	\SetKwFunction{Comp}{comp}\SetKwFunction{Sizeof}{sizeof}
+	\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+	\Input{String sequence $S = \{s_{1}, s_{2}, ... , s_{n}\}$}
+	\Output{Simple Compression}
+	\PREF $\leftarrow \emptyset$\;
+	\COMP $\leftarrow \emptyset$\;
+	\For{$i \leftarrow 1$ \KwTo $n$}{
+		\cost $\leftarrow \infty$\;
+		\If{$|$\PREF$|$ $>$ 0}{
+			\rcs $\leftarrow$ \Comp{$s_{i}$, \PREF}\;
+			\cost $\leftarrow$ \Sizeof{\rcs}\;
+		}
+		\If{\cost $<$ \Sizeof{$s_{i}$}}{
+			\COMP $\leftarrow$ \COMP $\cup$ \{\rcs\}\;
+		}
+		\Else{
+			\PREF $\leftarrow$ \PREF $\cup$ \{\rcs\}\;
+			\COMP $\leftarrow$ \COMP $\cup$ \{$(s_{i}, 0, |s_{i}| - 1, s_{i}(|s_{i}| - 1))$\}\;
+		}
+	}
+	\caption{Computation of Simple Compression}\label{algo_csimple}
+\end{algorithm}
 
 
 
