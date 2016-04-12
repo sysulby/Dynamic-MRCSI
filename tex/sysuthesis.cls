@@ -30,7 +30,6 @@
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
 \pagestyle{fancy}
-\usepackage{showframe}
 
 \setlength{\cftbeforetoctitleskip}{50pt}
 \setlength{\cftbeforelottitleskip}{50pt}
@@ -197,10 +196,6 @@
 		\multicolumn{2}{|l|}{\parbox{\textwidth - 1.5\ccwd}{{\bfseries 第3次检查}\\学生总结：\\\@thirdcheck}}\\
 		\multicolumn{2}{|l|}{\rule{0cm}{\baselineskip}}\\
 		\multicolumn{2}{|l|}{\parbox{\textwidth - 1.5\ccwd}{指导教师意见：\\\@thirdopinion}}\\
-		\multicolumn{2}{|l|}{\rule{0cm}{\baselineskip}}\\
-		\multicolumn{2}{|l|}{学生签名：\hfill 年\qquad 月\qquad 日}\\
-		\multicolumn{2}{|l|}{\rule{0cm}{\baselineskip}}\\
-		\multicolumn{2}{|l|}{指导教师签名：\hfill 年\qquad 月\qquad 日}\\
 		\multicolumn{2}{|l|}{\rule{0cm}{\baselineskip}}\\
 		\hline
 		{\bfseries 总体完成情况}& 指导教师意见：\\

@@ -23,36 +23,44 @@
 
 %开题报告正文
 \openingrep{
-选题目的\\
-如何高效存储大量字符串以及快速检索其中的近似子串，在基因突变序列、Wiki历史条目等问题中起着关键作用。目前较多的方法只侧重于其中一点，即通过索引进行压缩，但同时失去了检索的可能。因此，找出一种兼备存储效率及检索速度的方法很有实用意义。\\
-\\
-思路及方法\\
-对于文本压缩，比较常见的方法是对于某些近似的字符串，选出一个字符串作为它们的索引。该方法的问题在于，对于需要检索的字符串，只能找出与其近似的索引，而不是全部近似子串的集合。
-在这个方法的基础上加以改进，我们可以构建分层结构的多重引用，即每个字符串与索引间存在层次化的依赖关系。对于检索，需要先找到匹配的索引，通过对索引中预处理信息的考察，得出所有与模式串编辑距离小于k的子串集合。
-问题的难点在于，找出合适的算法与数据结构，用于构造字符串间的引用关系，在保证较高压缩率的同时，兼顾检索的速度。\\
-\\
-进度安排\\
-2015年12月 查看文献，总结他人在该类问题上的思路与技巧\\
-2016年03月 尝试多种算法及数据结构，测试比较并完成论文撰写\\
+	选题目的\\
+	如何高效的存储大量字符串以及快速检索其中相近的子集，在基因组序列、Wiki条目等问题中起着关键的作用。目前较多的方法只侧重于其中一点，即牺牲查找速度实现压缩存储，或建立大规模的索引加快搜索。因此，找出一种兼备存储效率及检索速度的方法很有实用意义。\\
+	\\
+	思路及方法\\
+	对于文本压缩，比较常见的方法是对于某些近似的字符串，选出一个字符串作为它们的参考。该方法的问题在于，对于需要检索的字符串，只能找出与其近似的参考，而不是近似的字符串子集。
+	在这个方法的基础上加以改进，我们可以构建分层结构的多重参考，即每个字符串存在多个参考，参考间存在层次化的依赖关系。对于检索，需要先找到匹配的参考，通过对参考中预处理信息的考察，得出所有与询问串编辑距离小于k的字符串集合。
+	问题的难点在于，找出合适的算法与数据结构，用于构造字符串间的参考关系，在保证较高压缩率的同时，兼顾检索的速度。\\
+	\\
+	进度安排\\
+	2015年12月 查看文献，总结他人在该类问题上的思路与技巧\\
+	2016年03月 尝试多种算法及数据结构，测试比较并完成论文撰写\\
 }
 
 %开题报告指导教师意见
 \openingopinion{
-海量数据的存储和检索是数据科学的重要问题，作者的选题有学术价值，也有技术难度。\\
+	海量数据的存储和检索是数据科学的重要问题，作者的选题有学术价值，也有技术难度。\\
 }
 
 
 
 %第一次过程检查的学生总结
-\firstcheck{\rule{0cm}{4\baselineskip}}
+\firstcheck{
+	阅读了几篇关于字符串压缩、字符串k近似匹配的论文，学习了解决这两个问题较为常见的思路、方法。
+}
 %第一次过程检查的指导老师意见
 \firstopinion{\rule{0cm}{2\baselineskip}}
 %第二次过程检查的学生总结
-\secondcheck{\rule{0cm}{4\baselineskip}}
+\secondcheck{
+	大致构建了压缩的算法、查询的算法框架，考虑用后缀数组或者后缀树做字符串匹配。\\
+	从部分结果进行扩展时，似乎可以使用函数式线段树查询区间，但空间复杂度略高。
+}
 %第二次过程检查的指导老师意见
 \secondopinion{\rule{0cm}{2\baselineskip}}
 %第三次过程检查的学生总结
-\thirdcheck{\rule{0cm}{4\baselineskip}}
+\thirdcheck{
+	最终选择了较为简洁的后缀自动机作为主要的数据结构进行字符串匹配，区间的查询可用区间树维护。\\
+	完成了总体的代码，压缩率一般，继续考虑较为细节的策略。
+}
 %第三次过程检查的指导老师意见
 \thirdopinion{\rule{0cm}{2\baselineskip}}
 %整体完成情况的指导老师意见
@@ -76,13 +84,13 @@
 
 
 \cabstract{
-	中文摘要内容
+	对于海量数据的存储与检索，是数据科学领域的重要问题，在构建人类基因库、Wiki文库历史版本维护等问题中起着关键作用。近年来，越来越多的研究开始将两者结合起来，在保证数据压缩存储的同时，兼备检索的能力。本文旨在利用一种较为简洁的数据结构——后缀自动机，对于可添加的字符串集合，动态构建包含多个引用的层次化索引结构，其中：1）引用的选择由程序自身决策，而非人工选择；2）支持基于编辑距离的近似字符串匹配。经证实，对于索引结构的字符串压缩方案来说，寻找空间最优解是一个NP-hard问题。因此，本文的最终目标在于尽量优化存储空间，在满足较高压缩率的同时，兼顾检索的速度。
 }
-\keywords{排版；毕业论文；模版}
+\keywords{数据压缩；近似匹配；索引；后缀自动机}
 \eabstract{
-	Content of the abstract.
+	Storing and searching of massive data is an important issue in the field of data science, which plays a key role in problems as construction of the human gene pool and in maintenance problems about historical versions in Wiki library. Recently, more and more researchers have been beginning to combine them. In other words, when it comes to the compressed storage of data, the searching ability is also demanded. This paper aims to use a relatively compact data structure - suffix automaton, to dynamically build the hierarchical index structure containing multiple reference, for the set of strings that can expand, in which: 1) the reference is selected by its own decision-making procedures, rather than artificial selection; 2) it is supported to match approximate string based on their edit-distance. It was confirmed that for the index structure string compression scheme, finding the optimal solution in space is an NP-hard problem. Therefore, the ultimate goal of this paper is trying to optimize storage space to meet the higher compression ratio while taking a efficent searching method into account.
 }
-\ekeywords{typeset; thesis; template}
+\ekeywords{Compression; approximate matching; indexing; suffix automaton}
 
 
 
@@ -91,41 +99,37 @@
 \frontmatter
 
 \cleardoublepage
-%目录
 \tableofcontents
 
 \mainmatter
 
 
-%现在开始正文
 
 \chapter{引言}
+在信息科学领域中，字符串及相关问题一直以来都是研究的热点，其中最具代表性的当属匹配[19]与压缩[]问题。在数据量越来越大的今天，直接对字符串本身进行存储将占用大量空间，如何在其中检索有用的信息也是一大难题。那么对于庞大的字符串集合，要如何将其压缩至尽量小的空间，却又可以尽量快的进行检索呢？
+
+
 
 \section{背景}
+近年来，随着信息技术在基因工程方面的普及，越来越多的DNA序列问题依赖计算机来处理。例如在研究基因突变时，由于突变率较低，必须记录下大量实验数据，再找出其中与原DNA序列近似的片段。其他方面，网络知识库的加速更迭，使得历史版本的存储带来挑战。在Wiki条目中，对于某个名词，可能存在许多类似的别称，需要一种近似检索的策略。\par
+在字符串检索领域中有一种较为重要的方式——k近似匹配：在一个字符串集合中，找出与模式串之间编辑距离不超过k的所有子串，其中编辑距离表示将模式串通过插入、修改、删除变为目标串的最小修改次数。传统的k近似匹配基本只用到两种方法：1）对于集合内的字符串分别处理；2）将集合内的字符串拼接起来处理。这两种方法的局限性在于，存储所占用的空间至少是所有字符串长度之和。由于自然语言的特性，许多语句之间具有极强的关联性，可以通过其中的某一句话的片段，表达其他句子的部分信息，从而达到压缩存储的目的。因此，越来越多研究开始尝试先选择一些字符串作为索引，再将与之相似的串通过引用进行压缩的方法。此时，k近似匹配变成了两个问题：1）在索引集合中检索；2）找出与该索引串相似的引用串。这种方法的问题在于，只有索引中的匹配是精确的，引用串只是与索引串相似，而非模式串。\par
+因此，找出一种将两者结合起来，在保证数据压缩存储的同时，兼备高效检索能力的算法是十分有意义的。
 
- 众所周知，编写毕业论文的过程如算法\ref{algor:write}所示。
 
-\begin{algorithm}[H]
-\KwData{字符串}
-\KwResult{一篇毕业论文}
-初始化\;
-\While{当前时间未达到截止时间}{
-	阅读现有内容\;
-	\If{不知道自己在写什么}{
-		重写\;
-	}
-}
-\caption{编写毕业论文}
-\label{algor:write}
-\end{algorithm}
 
-\section{国内外研究现状}
+\section{相关成果}
+我们首先简单介绍一下前人有关字符串压缩算法的研究成果，以及这一技术在解决各领域有关检索问题时的应用。
 
-国内外众多高校的毕业论文都有官方或非官方\LaTeX 模版，让莘莘学子从繁琐的排版细节中解放出来，得以集中精力于研究和写作工作本身。 
+
+
+\subsection{字符串压缩}
+
+
 
 \section{本文工作}
+本文结合了前人的研究结果，尝试构建动态的多引用可搜索索引模型，支持动态扩展的字符串集合，通过多引用提高压缩率，自动决策引用的选择以及提供高效的搜索策略。构建思路的难点在于：1）每次要在原有结构的基础上进行简单修改即可完成更新，需要适合的数据结构；2）每个引用串可以引用多个不同的索引，需要在字符串集合中进行快速匹配，设计尽量优化空间的选择策略；3）需要快速的k近似匹配算法，以及合适的数据结构维护引用的关系，从而递推出全部结果；4）特殊情况的处理。下面我们将对上述问题依次讨论。
 
-我们建立了一个尽可能符合《中山大学本科生毕业论文(设计)写作与印制规范》的\LaTeX 模版，容许任何人自由使用，然而我们无法保证它是否完全符合学校的相关要求，甚至不保证它可以正常编译\endnote{反正我是可以正常编译。}。对于使用此模版造成的任何后果，本人不负有任何责任。
+
 
 \chapter{模版使用说明}
 
@@ -345,7 +349,7 @@ xelatex main
 
 
 %篇末注（非常抱歉只支持最多10个，在正文通过\endnote{}命令生成）
-\displayendnotes
+%\displayendnotes
 
 %参考文献是毕业设计(论文)不可缺少的组成部分,它反映毕业设计(论文)的取材来源、材料的广博程度和材料的可靠程度,也是作者对他人知识成果的承认和尊重。一份完整的参考文献可向读者提供一份有价值的信息资料,列入的文献应在 10 篇以上,其中外文文献在 2 篇以上。
 \zihao{-5}\songti
