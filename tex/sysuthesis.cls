@@ -15,7 +15,7 @@
 \RequirePackage{longtable}
 \RequirePackage{endnotes}
 \RequirePackage[section]{placeins}
-\RequirePackage[chinese,onelanguage,noline,noend,linesnumbered,algochapter,ruled,vlined]{algorithm2e}
+\RequirePackage[onelanguage,noline,noend,linesnumbered,algochapter,ruled,vlined]{algorithm2e}
 \RequirePackage{enumitem}
 \setlist[enumerate]{nosep}
 \setlist[itemize]{nosep}
