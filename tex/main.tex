@@ -193,10 +193,9 @@
 	\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
 	\Input{String sequence $S = \{s_{1}, s_{2}, ... , s_{n}\}$}
 	\Output{\PREF, \COMP}
-	\PREF $\leftarrow \emptyset$\;
-	\COMP $\leftarrow \emptyset$\;
+	$\PREF \leftarrow \COMP \leftarrow \emptyset$\;
 	\For{$i \leftarrow 1$ \KwTo $n$}{
-		\cost $\leftarrow \infty$\;
+		$\cost \leftarrow \infty$\;
 		\If{$\left| \PREF \right| > 0$}{
 			\rcs $\leftarrow$ \Comp{$s_{i}$, \PREF}\;
 			\cost $\leftarrow$ \Sizeof{\rcs}\;
@@ -263,30 +262,74 @@
 
 
 \section{符号定义}
-有限状态自动机是一种可以识别字符串的数据结构，对于一个自动机$A$，若他能识别字符串$s$，则记$A(s) = True$，否则$A(s) = False$。自动机由以下几部分构成：$\Sigma$为字符集，$state$表示状态集合，$init$为初始状态，$end$为结束状态集合，$trans$表示状态转移函数。用$trans(S, ch)$表示在状态$S$下读入字符$ch$后所达到的状态，同时令$trans(S, str)$表示在状态$S$下读入字符串$str$后所达到的状态。那么自动机$A$所能识别的字符串就是所有使得$trans(init, s) \subset end$的字符串$s$，记为$Reg(A)$。而从状态$S$开始能识别的字符串，即所有使得$trans(S, s) \subset end$的字符串$s$，记为$Reg(S)$。
+有限状态自动机是一种可以识别字符串的数据结构，对于一个自动机$A$，若他能识别字符串$s$，则记$A(s) = True$，否则$A(s) = False$。自动机由以下几部分构成：$\Sigma$为字符集，$State$表示状态集合，$Init$为初始状态，$End$为结束状态集合，$Trans$表示状态转移函数。用$trans(S, ch)$表示在状态$S$下读入字符$ch$后所达到的状态，同时令$trans(S, str)$表示在状态$S$下读入字符串$str$后所达到的状态。那么自动机$A$所能识别的字符串就是所有使得$trans(Init, s) \subset End$的字符串$s$，记为$Reg(A)$。而从状态$S$开始能识别的字符串，即所有使得$trans(S, s) \subset End$的字符串$s$，记为$Reg(S)$。
 
 
 
 \section{算法原理}
 顾名思义，关于字符串$s$的后缀自动机Suffix Automaton（简称SAM）是一个能识别$s$所有后缀的自动机，即$SAM(t) = True$当且仅当$t$是$s$的后缀。后面会介绍，$SAM$也能用于识别$s$所有的子串。这里，我们只关心最简状态后缀自动机，及及即状态数最少的自动机。可以证明，它的状态空间是线性的，这里就不详细说了。\par
-对于最简状态后缀自动机$SAM$，我们用$ST(str)$表示$trans(init, str)$，即从初始状态读入字符串$str$后达到的状态。对于字符串$s$，记它的后缀集合为$Suf$，子串集合为$Fac$。对于任何一个属于$Fac$的字符串$t$，$ST(t)$都对应一个合法的状态，因为可以在后面加入一些字符使其变成$s$的后缀。但我们不能将每个$t \in Fac$都对应一个状态，因为$Fac$的大小是$O(N^2)$的。考虑$ST(t)$所能识别的字符串集合$Reg(ST(t))$，对于$s$的后缀$x \in Suf$，如果$ST(t)$能识别$x$，则$t \circ x \in Suf$，即$Reg(ST(t))$是一些后缀集合。如果我们用$Right(t)$表示子串$t$出现的所有位置的右端点集合，那么$Reg(ST(t))$就完全由$Right(t)$决定。对于两个子串$u, v \in Fac$，如果$Right(u) = Right(v)$，则$ST(u) = ST(v)$。所以一个状态$S$对应所有$Right$集合等于$Right(t)$的字符串。\par
-对于一个下标$r \in Right(t)$，只需要指定子串的长度$len$，就可以确定子串为$s(r - len, len)$。即给定一个状态的$Right$集合，只需要子串长度便可以确定子串。当给定的长度变短时，子串出现的位置可能变多，以至于超出$Right$集合的范围，但必然包含该$Right$集合。反之则得到$Right$集合的子集。因此对于不同的状态，$Right$集合要么不相交，要么一个是另一个的真子集。不难发现，这种集合构成了树形的关系，我们称之为Parent树，如图\ref{imag_partree}所示。\par
+对于最简状态后缀自动机$SAM$，我们用$ST(str)$表示$trans(Init, str)$，即从初始状态读入字符串$str$后达到的状态。对于字符串$s$，记它的后缀集合为$Suf$，子串集合为$Fac$。对于任何一个属于$Fac$的字符串$t$，$ST(t)$都对应一个合法的状态，因为可以在后面加入一些字符使其变成$s$的后缀。但我们不能将每个$t \in Fac$都对应一个状态，因为$Fac$的大小是$O(N^2)$的。考虑$ST(t)$所能识别的字符串集合$Reg(ST(t))$，对于$s$的后缀$x \in Suf$，如果$ST(t)$能识别$x$，则$t \circ x \in Suf$，即$Reg(ST(t))$是一些后缀集合。如果我们用$Right(t)$表示子串$t$出现的所有位置的右端点集合，那么$Reg(ST(t))$就完全由$Right(t)$决定。对于两个子串$u, v \in Fac$，如果$Right(u) = Right(v)$，则$ST(u) = ST(v)$。所以一个状态$S$对应所有$Right$集合等于$Right(t)$的字符串。\par
+对于一个下标$r \in Right(t)$，只需要指定子串的长度$len$，就可以确定子串为$s(r - len, len)$。即给定一个状态的$Right$集合，只需要子串长度便可以确定子串。当给定的长度变短时，子串出现的位置可能变多，以至于超出$Right$集合的范围，但必然包含该$Right$集合。反之则得到$Right$集合的子集，我们将保证$Right$集合不变的长度范围记为$[Minl, Maxl]$。由此得出对于不同的状态，$Right$集合要么不相交，要么一个是另一个的真子集。不难发现，这种集合构成了树形的关系，我们称之为Parent树，如图\ref{imag_partree}所示。\par
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[scale=0.3]{image/cdag.png}
-	\caption{Parent树}\label{imag_partree}
+	\includegraphics[scale=0.3]{image/partree.png}
+	\caption{"abbab"的Parent树}\label{imag_partree}
 \end{figure}
 
-不难发现，每个状态的$Right$集合都等于其孩子状态$Right$集合的并集，因此我们不必存下每个状态的$Right$集合，需要时通过dfs查询即可。\par
+不难发现，每个状态的$Right$集合都等于其孩子状态$Right$集合的并集，因此我们不必存下每个状态的$Right$集合，需要时通过dfs查询即可。同时也可以发现，对于长度范围，$Maxl(fa) = Minl(s) - 1$。\par
 对于最长公共前缀的查询，我们只需要沿着状态转移函数走，直至走不到合法状态为止。从当前状态的$Right$集合中选出一个下标，结合转移步数，便可定位匹配的子串。而对于一般的字符串匹配，则必须将模式串全部走完，再递归求出整个$Right$集合，得到全部匹配的子串。\par
 下面，我们来看如何动态构建$SAM$。
 
 
 
 \section{动态构建}
+由于需要满足动态扩展的特性，$SAM$的构建算法必须是在线的，即每次添加一个字符，并更新当前$SAM$使其成为包含该字符的$SAM$。\par
+若当前字符串为$s$，长度为$l$，在加入字符$x$后，新增的子串必然是$s \circ x$的后缀。我们考虑所有表示$s$后缀的状态，对于其中的某个状态$p = ST(s)$，显然$p$对应的$Right$集合中有且只有一个$l$，而其他状态的$Right$集合都包含$l$，因此它们必然全是$p$的祖先。不妨将$p$沿着Parent树到根的路径记为$v_{1} = p, v_{2}, ... , v_{k} = root$。对于其中的一个状态$v$，它的$Right$集合为$\{r_{1}, r_{2}, ..., r_{n} = l\}$，那么在添加新字符$x$后形成的新状态$nv$中，只有$s[r_{i}] = x$的那些$r_{i}$是符合要求的。由此得出，如果从$v$出发没有标号为$x$的边（先不看$r_{n}$），那$v$的$Right$集合中就没有满足条件的$r_{i}$。如果从$v_{i}$出发有标号为$x$的边，由于$v_{i}$的$Right$集合是依次扩大的，那么$v_{i+1}$也有，因此我们考虑其中第一个有标号$x$的边的状态$v_{p}$。如果我们记添加字符$x$后的新状态$np = ST(s \circ x)$，则$Right(np) = \{l + 1\}$。对于$v_{p}$之前的状态，由于出发没有标号为$x$的边，其$Right$集合中只有$r_{n}$是满足要求的，因此将它们连一条到$np$标号为$x$的边。若$v_{p}$的$Right$集合为$\{r_{1}, r_{2}, ..., r_{n} = l\}$，记$trans(v_{p}, x) = q$，那么$q$的$Right$集合就是$\{r_{i} + 1 | s[r_{i}] = x\}$（注意这是更新前的情况，$r_{n}$是不算的）。但我们不能直接在$q$的$Right$集合中插入$l + 1$，因为以$l + 1$结尾的串可能达不到$Maxl(q)$的长度。当$Maxl(q) = Maxl(v_{p}) + 1$时不会有这种问题，令$Parent(np) = q$即可。否则需要新建节点$nq$，令$Right(nq) = Right(q) \cup \{l + 1\}$，此时的$Maxl(nq) = Maxl(v_{p}) + 1$，而$Right(q)$则是$Right(nq)$的真子集。所以令$Parent(q) = nq$，同时$Parent(np) = nq$即可。对于节点$nq$的状态转移函数$Trans(nq)$，由于$l + 1$后没有字符，所以与$Trans(q)$相同。最后，对于$v_{p}$之后的节点，只有连续的一段$v_{p}, ..., v_{e}$是会通过标号为$x$的边走到节点$q$的，由于节点$q$已经被替换成了$nq$，故只需要将$v_{p}, ..., v_{e}$的$trans(v_{i}, x)$设为$nq$即可。\par
+至此，我们已经完成了对$SAM$的更新，流程如算法\ref{algo_sam_append}所示。\par
+
+\begin{algorithm}[H]
+	\SetKwData{x}{x}\SetKwData{root}{root}\SetKwData{p}{p}\SetKwData{np}{np}\SetKwData{q}{q}\SetKwData{nq}{nq}
+	\SetKwFunction{trans}{trans}\SetKwFunction{Parent}{Parent}
+	\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+	\Input{$SAM$, Character \x}
+	\Output{new $SAM$}
+	$Maxl(np) \leftarrow Maxl(p) + 1$\;
+	\While{$\p \neq NULL\ And\ \trans(\p, \x) = NULL$}{
+		$\trans(\p, \x) \leftarrow \np$\;
+		$\p \leftarrow \Parent(\p)$\;
+	}
+	\If{$\p = NULL$}{
+		$\Parent(\np) \leftarrow \root$\;
+	}
+	\uIf{$Maxl(\q) = Maxl(\p) + 1$}{
+		$\Parent(\np) \leftarrow \q$\;
+	}
+	\Else{
+		$\nq \leftarrow \q$\;
+		$Maxl(\nq) \leftarrow Maxl(\p) + 1$\;
+		$\Parent(\q) \leftarrow \Parent(\np) \leftarrow \nq$\;
+		\While{$\p \neq NULL\ And\ \trans(\p, \x) = q$}{
+			$\trans(\p, \x) \leftarrow \nq$\;
+			$\p \leftarrow \Parent(\p)$\;
+		}
+	}
+	\caption{Append character on SAM}\label{algo_sam_append}
+\end{algorithm}
+
+可见，虽然原理上稍显复杂，但具体的算法流程还是很简洁的。
 
 
+
+\section{具体应用}
+通过后缀自动机，我们就可以快速构建上一章的索引结构了。\par
+首先我们用一个$SAM$来维护$PREF$，对于需要加入到$PREF$中的字符串，只需将字符依次插入$SAM$中。为了防止匹配到的子串跨过多个主引用，还要在相邻的主引用间插入特殊的标识符。对于压缩过程，只需要用到最长公共前缀的查询，比较好的方式是在每个节点都记录一个$Right$集合中的值，这样就不用每次都递归下去寻找。同时，我们还要再用一个$SAM$来维护之前得出的$RCS$序列Hash值。对于初步压缩得到的$RCS$序列，利用同样的方式进一步压缩，然后将最终序列的哈希值依次插入到这一步的$SAM$中。在随后的k近似匹配中，还会用到$SAM$的模式匹配功能，这个将在下面介绍。\par
+由于$SAM$的构造、查询复杂度都是线性的，所以通过$SAM$构建索引结构的复杂度等于读入字符串的长度和，即复杂度的下界。而$SAM$的空间复杂度同样也是线性的，从而保证了占用空间不超过$PREF$的长度和。由此可见，使用后缀自动机作为主要的数据结构是十分合适的。\par
+接下来的章节，我们将介绍在索引结构中进行k近似匹配的方法。
+
+
+
+\chapter{k近似匹配}
 
 
 
