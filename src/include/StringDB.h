@@ -267,22 +267,21 @@ class StringDB {
                 rseg.push_back(Pii(rcsref->length(), id));
                 // update RMEMAP
                 rmemap.push_back(new IntTree());
-                for (int i = 0; i < rcs.size(); ++i)
+                for (int i = 0; i < rcs.size(); ++i) if (rcs[i].length)
                         rmemap[rcs[i].refid]->insert(rcs[i].start,
                                         rcs[i].start + rcs[i].length - 1,
                                         id, rcs.offset[i]);
                 // update OVERLAPMAP
-                for (int i = 0; i < rcs.size() - 1;) {
-                        int l = rcs.offset[i] + rcs[i].length - dlt, r;
-                        for (int j = i + 1; j < rcs.size(); ++j) {
-                                if (j == rcs.size() - 1 ||
-                                                rcs[i].length > dlt * 2) {
-                                        r = rcs.offset[j] + dlt;
-                                        i = j;
+                for (int i = 0; i < rcs.size();) {
+                        int l = max(rcs.offset[i] + rcs[i].length - dlt, 0), r;
+                        while (++i <= rcs.size()) {
+                                if (i == rcs.size()) {
+                                        r = s.length() - 1;
+                                } else if (rcs[i].length > dlt * 2) {
+                                        r = rcs.offset[i] + dlt;
                                         break;
                                 }
                         }
-                        l = max(l, 0), r = min(r, (int)s.length() - 1);
                         for (int j = l; j <= r; ++j) {
                                 ovlmap->append(s[j]);
                                 ostr += s[j];
@@ -308,8 +307,8 @@ class StringDB {
         {
                 vector<Match> ret;
                 match_pref(s, k, ret);
-                bfs_rmemap(ret);
                 match_ovlmap(s, k, ret);
+                bfs_rmemap(ret);
                 cout << "Match with " << ret.size() << " substring(s):" << endl;
                 cout << string(32, '-') << endl;
                 cout << setw(8) << "refid " <<
