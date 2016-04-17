@@ -175,17 +175,17 @@
 \hspace{1cm}$comp(s_{4}, \{s_{1}\}) = [(1, 0, 3, /), (1, 4, 16, a), (1, 8, 0, s)]$\par
 \hspace{1cm}$comp(s_{5}, \{s_{5}\}) = [(5, 0, 12, e)]$\par
 \hspace{1cm}$comp(s_{6}, \{s_{5}\}) = [(5, 0, 4, C), (5, 6, 6, e)]$\par
-他们之间的引用关系如图\ref{imag_csimple}所示。\par
+他们之间的引用关系如图\ref{image:csimple}所示。\par
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[scale=0.3]{image/csimple.png}
-	\caption{简单索引}\label{imag_csimple}
+	\caption{简单索引}\label{image:csimple}
 \end{figure}
 
 接下来，我们介绍构建的具体算法。\par
 在初始状态下，有$PREF = \emptyset$，$COMP = \emptyset$。随后加入$s_{1}$时，由于$PREF$为空，$s_{1}$无法选择任何引用，故将$s_{1}$加入$PREF$，得到$PREF = \{s_{1}\}$，$COMP = \{s_{1}\}$。在加入$s_{2}$时我们有两种选择：1）将$s_{2}$加入$PREF$；2）以$s_{1}$作为引用构建索引。显然，当$s_{1}$与$s_{2}$较为相似时，选择后者较优，这时我们得到$PREF = \{s_{1}\}$，$COMP = \{s_{1}, s_{2}\}$。否则选择前者，此时$PREF = \{s_{1}, s_{2}\}$，$COMP = \{s_{1}, s_{2}\}$。加入$s_{3}$时，要先与$PREF$中的所有主引用比较相似度，再进行决策。\par
-然而相似度的概念过于主观，因此我们的算法需要一定的策略来选择加入的方式。每次添加字符串时，不妨对该串进行一次压缩，将得出的结果进行比较，选择较优的决策。流程如算法\ref{algo_csimple}所示。\par
+然而相似度的概念过于主观，因此我们的算法需要一定的策略来选择加入的方式。每次添加字符串时，不妨对该串进行一次压缩，将得出的结果进行比较，选择较优的决策。流程如算法\ref{algo:csimple}所示。\par
 
 \begin{algorithm}[H]
 	\SetKwData{PREF}{PREF}\SetKwData{COMP}{COMP}\SetKwData{rcs}{rcs}\SetKwData{cost}{cost}
@@ -208,10 +208,10 @@
 			\COMP $\leftarrow \COMP \cup \{(s_{i}, 0, \left| s_{i} \right| - 1, s_{i}[\left| s_{i} \right| - 1])$\}\;
 		}
 	}
-	\caption{Computation of Simple Compression}\label{algo_csimple}
+	\caption{Computation of Simple Compression}\label{algo:csimple}
 \end{algorithm}
 
-这里的$comp$函数是将字符串关于某个引用集合进行压缩，由于结果的好坏直接影响到最终压缩率的大小，选择合适的算法就显得尤为重要了。不难发现，这一过程满足贪心的策略。每次在引用集合中匹配当前串的最长前缀，将该前缀对应的$RME$加入$RCS$集合后将其删除，再重复这一过程。流程如算法\ref{algo_comp}所示。\par
+这里的$comp$函数是将字符串关于某个引用集合进行压缩，由于结果的好坏直接影响到最终压缩率的大小，选择合适的算法就显得尤为重要了。不难发现，这一过程满足贪心的策略。每次在引用集合中匹配当前串的最长前缀，将该前缀对应的$RME$加入$RCS$集合后将其删除，再重复这一过程。流程如算法\ref{algo:comp}所示。\par
 
 \begin{algorithm}[H]
 	\SetKwData{s}{s}\SetKwData{REF}{REF}\SetKwData{pre}{pre}\SetKwData{rcs}{rcs}
@@ -230,7 +230,7 @@
 			remove \pre from \s\;
 		}
 	}
-	\caption{Compress with Reference}\label{algo_comp}
+	\caption{Compress with Reference}\label{algo:comp}
 \end{algorithm}
 
 值得注意的是，由于每一次都进行了尝试的压缩，$comp$函数的执行速度非常重要。因此，需要找到合适的数据结构用于快速匹配最长公共前缀，我们将在下一章进行讨论。
@@ -243,12 +243,12 @@
 \hspace{1cm}$comp(s_{4}, \{s_{1}\}) = [(1, 0, 3, /), (1, 4, 16, a), (1, 8, 0, s)]$\par
 由于$s_{4}$与$s_{3}$比较接近，如果能通过$s_{3}$构建$s_{4}$的索引，那么就可以进一步减少所需空间：\par
 \hspace{1cm}$comp(s_{4}, \{s_{3}\}) = [(3, 0, 21, s)]$\par
-此时的引用关系变成了层次化的DAG，如图\ref{imag_cdag}所示。\par
+此时的引用关系变成了层次化的DAG，如图\ref{image:cdag}所示。\par
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[scale=0.3]{image/cdag.png}
-	\caption{DAG索引}\label{imag_cdag}
+	\caption{DAG索引}\label{image:cdag}
 \end{figure}
 
 优化的方法并不复杂，只需要在前面的简单索引结构上加以改进。如果我们通过Hash将所有不同的$RME$对应为不同的数值，那么每个$RCS$就是一个数列。现在的问题变成了，要用已知的数列集合，压缩当前的数列。不难发现，这与之前的$comp$函数做的是同样的事情，仅仅是将字符串换成了数列。具体的过程也十分类似，只加了一步Hash转化，这里就不赘述了。\par
@@ -269,12 +269,12 @@
 \section{算法原理}
 顾名思义，关于字符串$s$的后缀自动机Suffix Automaton（简称SAM）是一个能识别$s$所有后缀的自动机，即$SAM(t) = True$当且仅当$t$是$s$的后缀。后面会介绍，$SAM$也能用于识别$s$所有的子串。这里，我们只关心最简状态后缀自动机，即状态数最少的自动机。后面会给出证明，它的复杂度是线性的。\par
 对于最简状态后缀自动机$SAM$，我们用$ST(str)$表示$trans(Init, str)$，即从初始状态读入字符串$str$后达到的状态。对于字符串$s$，记它的后缀集合为$Suf$，子串集合为$Fac$。对于任何一个属于$Fac$的字符串$t$，$ST(t)$都对应一个合法的状态，因为可以在后面加入一些字符使其变成$s$的后缀。但我们不能将每个$t \in Fac$都对应一个状态，因为$Fac$的大小是$O(N^2)$的。考虑$ST(t)$所能识别的字符串集合$Reg(ST(t))$，对于$s$的后缀$x \in Suf$，如果$ST(t)$能识别$x$，则$t \circ x \in Suf$，即$Reg(ST(t))$是一些后缀集合。如果我们用$Right(t)$表示子串$t$出现的所有位置的右端点集合，那么$Reg(ST(t))$就完全由$Right(t)$决定。对于两个子串$u, v \in Fac$，如果$Right(u) = Right(v)$，则$ST(u) = ST(v)$。所以一个状态$S$对应所有$Right$集合等于$Right(t)$的字符串。\par
-对于一个下标$r \in Right(t)$，只需要指定子串的长度$len$，就可以确定子串为$s(r - len, len)$。即给定一个状态的$Right$集合，只需要子串长度便可以确定子串。当给定的长度变短时，子串出现的位置可能变多，以至于超出$Right$集合的范围，但必然包含该$Right$集合。反之则得到$Right$集合的子集，我们将保证$Right$集合不变的子串长度范围记为$[Minl, Maxl]$。由此得出对于不同的状态，$Right$集合要么不相交，要么一个是另一个的真子集。不难发现，这种集合构成了树形的关系，我们称之为Parent树，如图\ref{imag_partree}所示。\par
+对于一个下标$r \in Right(t)$，只需要指定子串的长度$len$，就可以确定子串为$s(r - len, len)$。即给定一个状态的$Right$集合，只需要子串长度便可以确定子串。当给定的长度变短时，子串出现的位置可能变多，以至于超出$Right$集合的范围，但必然包含该$Right$集合。反之则得到$Right$集合的子集，我们将保证$Right$集合不变的子串长度范围记为$[Minl, Maxl]$。由此得出对于不同的状态，$Right$集合要么不相交，要么一个是另一个的真子集。不难发现，这种集合构成了树形的关系，我们称之为Parent树，如图\ref{image:partree}所示。\par
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[scale=0.3]{image/partree.png}
-	\caption{"abbab"的Parent树}\label{imag_partree}
+	\caption{"abbab"的Parent树}\label{image:partree}
 \end{figure}
 
 不难发现，每个状态的$Right$集合都等于其孩子状态$Right$集合的并集，因此我们不必存下每个状态的$Right$集合，需要时通过深度优先搜索查询即可。同时也可以发现，对于长度范围，$Maxl(fa) = Minl(s) - 1$。\par
@@ -286,7 +286,7 @@
 \section{动态构建}
 由于需要满足动态扩展的特性，$SAM$的构建算法必须是在线的，即每次添加一个字符，并更新当前$SAM$使其成为包含该字符的$SAM$。\par
 若当前字符串为$s$，长度为$l$，在加入字符$x$后，新增的子串必然是$s \circ x$的后缀。我们考虑所有表示$s$后缀的状态，对于其中的某个状态$p = ST(s)$，显然$p$对应的$Right$集合中有且只有一个$l$，而其他状态的$Right$集合都包含$l$，因此它们必然全是$p$的祖先。不妨将$p$沿着Parent树到根的路径记为$v_{1} = p, v_{2}, ... , v_{k} = root$。对于其中的一个状态$v$，它的$Right$集合为$\{r_{1}, r_{2}, ..., r_{n} = l\}$，那么在添加新字符$x$后形成的新状态$nv$中，只有$s[r_{i}] = x$的那些$r_{i}$是符合要求的。由此得出，如果从$v$出发没有标号为$x$的边（先不看$r_{n}$），那$v$的$Right$集合中就没有满足条件的$r_{i}$。如果从$v_{i}$出发有标号为$x$的边，由于$v_{i}$的$Right$集合是依次扩大的，那么$v_{i+1}$也有，因此我们考虑其中第一个有标号$x$的边的状态$v_{p}$。如果我们记添加字符$x$后的新状态$np = ST(s \circ x)$，则$Right(np) = \{l + 1\}$。对于$v_{p}$之前的状态，由于出发没有标号为$x$的边，其$Right$集合中只有$r_{n}$是满足要求的，因此将它们连一条到$np$标号为$x$的边。若$v_{p}$的$Right$集合为$\{r_{1}, r_{2}, ..., r_{n} = l\}$，记$trans(v_{p}, x) = q$，那么$q$的$Right$集合就是$\{r_{i} + 1 | s[r_{i}] = x\}$（注意这是更新前的情况，$r_{n}$是不算的）。但我们不能直接在$q$的$Right$集合中插入$l + 1$，因为以$l + 1$结尾的串可能达不到$Maxl(q)$的长度。当$Maxl(q) = Maxl(v_{p}) + 1$时不会有这种问题，令$Parent(np) = q$即可。否则需要新建节点$nq$，令$Right(nq) = Right(q) \cup \{l + 1\}$，此时的$Maxl(nq) = Maxl(v_{p}) + 1$，而$Right(q)$则是$Right(nq)$的真子集。所以令$Parent(q) = nq$，同时$Parent(np) = nq$即可。对于节点$nq$的状态转移函数$Trans(nq)$，由于$l + 1$后没有字符，所以与$Trans(q)$相同。最后，对于$v_{p}$之后的节点，只有连续的一段$v_{p}, ..., v_{e}$是会通过标号为$x$的边走到节点$q$的，由于节点$q$已经被替换成了$nq$，故只需要将$v_{p}, ..., v_{e}$的$trans(v_{i}, x)$设为$nq$即可。\par
-至此，我们已经完成了对$SAM$的更新，流程如算法\ref{algo_samappend}所示。\par
+至此，我们已经完成了对$SAM$的更新，流程如算法\ref{algo:samappend}所示。\par
 
 \begin{algorithm}[H]
 	\SetKwData{x}{x}\SetKwData{root}{root}\SetKwData{p}{p}\SetKwData{np}{np}\SetKwData{q}{q}\SetKwData{nq}{nq}
@@ -295,26 +295,26 @@
 	\Input{$SAM$, character \x}
 	\Output{new $SAM$}
 	$Maxl(np) \leftarrow Maxl(p) + 1$\;
-	\While{$\p \neq NULL\ And\ \trans(\p, \x) = NULL$}{
-		$\trans(\p, \x) \leftarrow \np$\;
-		$\p \leftarrow \Parent(\p)$\;
+	\While{$\p \neq NULL\ And\ \trans{\p, \x} = NULL$}{
+		$\trans{\p, \x} \leftarrow \np$\;
+		$\p \leftarrow \Parent{\p}$\;
 	}
 	\If{$\p = NULL$}{
-		$\Parent(\np) \leftarrow \root$\;
+		$\Parent{\np} \leftarrow \root$\;
 	}
 	\uIf{$Maxl(\q) = Maxl(\p) + 1$}{
-		$\Parent(\np) \leftarrow \q$\;
+		$\Parent{\np} \leftarrow \q$\;
 	}
 	\Else{
 		$\nq \leftarrow \q$\;
 		$Maxl(\nq) \leftarrow Maxl(\p) + 1$\;
-		$\Parent(\q) \leftarrow \Parent(\np) \leftarrow \nq$\;
-		\While{$\p \neq NULL\ And\ \trans(\p, \x) = q$}{
-			$\trans(\p, \x) \leftarrow \nq$\;
-			$\p \leftarrow \Parent(\p)$\;
+		$\Parent{\q} \leftarrow \Parent{\np} \leftarrow \nq$\;
+		\While{$\p \neq NULL\ And\ \trans{\p, \x} = q$}{
+			$\trans{\p, \x} \leftarrow \nq$\;
+			$\p \leftarrow \Parent{\p}$\;
 		}
 	}
-	\caption{Append character on SAM}\label{algo_samappend}
+	\caption{Append character on SAM}\label{algo:samappend}
 \end{algorithm}
 
 可见，虽然原理上稍显复杂，但具体的算法流程还是很简洁的。
@@ -344,12 +344,12 @@ $SAM$与后缀树相同，不管是空间复杂度，还是构造的时间复杂
 \section{k近似匹配}
 在引言中我们说明了k近似匹配的规则，现在我们先介绍如何进行直观的k近似匹配，再介绍如何将其推广到索引结构中。\par
 在经典的k近似匹配算法\cite{baeza1992fast}中，有一种称为种子扩展模式的方法。该算法基于这样一个事实：对于长度为$N$的模式串，如果文本串中存在与其编辑距离不超过k的子串，那么模式串与该子串之间必定存在长度至少为$r = \lfloor \frac{N}{k+1} \rfloor$的公共子串。基于这一性质，我们可以先将模式串等分成$k + 1$份种子，对于每个种子先找出它在文本串中的精确匹配。假设匹配位置的下标为$i$，根据编辑距离的特性，近似匹配的结果必然在$[i - (N - r) - k, i + N + k]$这一区间中，之后的求解可以分不同情况使用Shift-or、Bit-parallel等算法。由于该部分可以细分许多情况，十分复杂，在这里我们直接使用滚动数组优化的动态规划算法求解。\par
-对于某个种子找出的精确匹配位置$i$，我们与种子前面的模式串$pre$做逆向（从右向左）的动态规划，记录下区间$[i - (N - r) - k, i]$中各个位置到$i$的子串与$pre$的编辑距离结果。再从$i + r$开始与种子后面的模式串$suf$做正向的动态规划，通过类似的过程记录下结果。由于动态规划的转移至多与前一列有关，而我们只关心最后一列的结果，因此可以利用滚动数组将空间降至$O(N)$，如图\ref{imag_dp}所示。将上面两步得出的结果排序后扫描，便可快速得出所有k近似匹配子串。\par
+对于某个种子找出的精确匹配位置$i$，我们与种子前面的模式串$pre$做逆向（从右向左）的动态规划，记录下区间$[i - (N - r) - k, i]$中各个位置到$i$的子串与$pre$的编辑距离结果。再从$i + r$开始与种子后面的模式串$suf$做正向的动态规划，通过类似的过程记录下结果。由于动态规划的转移至多与前一列有关，而我们只关心最后一列的结果，因此可以利用滚动数组将空间降至$O(N)$，如图\ref{image:dp}所示。将上面两步得出的结果排序后扫描，便可快速得出所有k近似匹配子串。\par
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[scale=0.35]{image/dp.png}
-	\caption{动态规划}\label{imag_dp}
+	\caption{动态规划}\label{image:dp}
 \end{figure}
 
 以上算法的基础在于，能够在字符串集合中快速精确匹配种子出现的所有位置。幸运的是，后缀自动机完全可以胜任，具体方法之前也已提到。因此，对于索引结构上的k近似匹配，可以先在$PREF$构成的后缀自动机上匹配种子出现的位置，再在主引用中通过动态规划找出全部的k近似匹配。但这样得到的只是$PREF$中的结果，如何将其扩展到$COMP$集合上呢？我们将在下一节解决这个问题。
@@ -359,16 +359,16 @@ $SAM$与后缀树相同，不管是空间复杂度，还是构造的时间复杂
 \section{区间覆盖与区间树}
 上一节我们完成了在$PREF$中的k近似匹配，对于其中的某个匹配结果，实质上是一个主引用的子串。如果其他串的某个索引刚好覆盖这一子串，则该结果也必然出现在那个串中。基于这一逻辑，对于$refid$相同的一些$RME$，他们对应的区间存在一定的覆盖关系。如果我们能维护这种覆盖关系，就能从$PREF$中的结果开始，通过宽度优先搜索的方式推出全部$COMP$中的结果。\par
 那我们该如何维护这种关系呢？显然，区间树\cite{cormen2009introduction}是个很好的选择。\par
-区间树是一种基于平衡树的数据结构。我们都知道，平衡树可以快速维护有序序列，在$O(logN)$的复杂度下完成元素的插入、删除，序列的最值查询等。而区间树则可以维护区间集合及其内部关系，除了可以快速插入、删除区间外，还可以找出覆盖某个区间的所有区间子集，而后者刚好是我们所需要的。图\ref{imag_intvtree}展示了区间树的组织形式。\par
+区间树是一种基于平衡树的数据结构。我们都知道，平衡树可以快速维护有序序列，在$O(logN)$的复杂度下完成元素的插入、删除，序列的最值查询等。而区间树则可以维护区间集合及其内部关系，除了可以快速插入、删除区间外，还可以找出覆盖某个区间的所有区间子集，而后者刚好是我们所需要的。图\ref{image:intvtree}展示了区间树的组织形式。\par
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[scale=0.25]{image/intvtree.png}
-	\caption{区间树}\label{imag_intvtree}
+	\caption{区间树}\label{image:intvtree}
 \end{figure}
 
 从图中可以看到，每个区间以一个节点的方式出现在平衡树中，而区间的左端点则用来作为比较的键值。值得注意的是，每个节点除了记录区间的右端点外，还记录了当前子树下右端点的最值。这样的好处在于，对于查询要覆盖的区间$[s, t]$，如果该子树下最右的端点都小于$t$，那么这棵子树中一定不存在可行解。\par
-由此，我们得出在区间树中查询所有覆盖区间$[s, t]$节点的算法。首先从区间树的根节点$root$开始进行深度优先搜素，如果当前节点对应子树的右端点最值小于$t$则直接返回。否则比较该节点的左端点与$s$的大小关系，如果左端点小于等于$s$，则检查该点是否为可行答案，然后同时递归进入两棵子树中，否则只递归进入左子树。流程如算法\ref{algo_intquery}所示，其中$low$表示左端点，$high$表示右端点，$maxh$表示子树中右端点的最值，左右子树分别用$left$与$right$表示。\par
+由此，我们得出在区间树中查询所有覆盖区间$[s, t]$节点的算法。首先从区间树的根节点$root$开始进行深度优先搜素，如果当前节点对应子树的右端点最值小于$t$则直接返回。否则比较该节点的左端点与$s$的大小关系，如果左端点小于等于$s$，则检查该点是否为可行答案，然后同时递归进入两棵子树中，否则只递归进入左子树。流程如算法\ref{algo:intquery}所示，其中$low$表示左端点，$high$表示右端点，$maxh$表示子树中右端点的最值，左右子树分别用$left$与$right$表示。\par
 
 \begin{algorithm}[H]
 	\SetKwData{u}{u}\SetKwData{s}{s}\SetKwData{t}{t}\SetKwData{root}{root}\SetKwData{result}{result}
@@ -378,14 +378,17 @@ $SAM$与后缀树相同，不管是空间复杂度，还是构造的时间复杂
 	\Input{\root of IntTree, interval [\s, \t]}
 	\Output{set of Node which cover interval [\s, \t]}
 	\Procedure{\dfs{\u, \s, \t}}{
-		\lIf{$\u = NULL\ Or\ \maxh(\u) < \t$}{return}
-		\If{$\low(\u) \leq \s$}{
-			\lIf{$\high(\u) \geq \t$}{add \u to \result}
-			\dfs(\right(u), \s, \t)\;
+		\If{$\u = NULL\ Or\ \maxh{\u} < \t$}{
+			return
 		}
-		\dfs(\left(u), \s, \t)\;
+		\If{$\low{\u} \leq \s$}{
+			\If{$\high{\u} \geq \t$}{
+			add \u to \result}
+			\dfs{\right{u}, \s, \t}\;
+		}
+		\dfs{\left{u}, \s, \t}\;
 	}
-	\caption{Query interval in IntTree}\label{algo_intquery}
+	\caption{Query interval in IntTree}\label{algo:intquery}
 \end{algorithm}
 
 至此，我们可以对每个字符串都建一棵区间树，用以维护引用该字符串的索引。然后将$PREF$中的结果插入宽度优先搜索队列中，每次取出队头的结果，在它对应的区间树中找出所有覆盖该区间的$RME$，通过$RME$的$offset$计算出结果对应的子串，再将该子串插入搜索队列中，重复上述过程即可。
@@ -409,7 +412,7 @@ $SAM$与后缀树相同，不管是空间复杂度，还是构造的时间复杂
 		aton|Aho/Cora|sick|Aho/Cora|mata|matas|Tree|inkCut Tree\\
 		找到$s_{2}$中的"ick"与$s_{6}$中的"ink"，当前答案\\
 		$result = \{(s_{1}, 9, 3, "ick"), (s_{2}, 9, 3, "ick"), (s_{5}, 1, 3, "ink"), (s_{6}, 1, 3, "ink")\}$
-	\item 最后要在区间树中搜索答案。$s_{1}$对应的区间树如图\ref{imag_intvtree1}所示，查询区间$[9, 11]$找到$s_{3}$中的$[4, 19]$。之后根据$s_{2}$的区间树得出$s_{4}$中的区间$[0, 19]$，根据$s_{5}$的区间树找出$s_{6}$的区间$[0, 3]$。至此得出所有的覆盖区间，结合$RME$的$offset$得到最终答案\\
+	\item 最后要在区间树中搜索答案。$s_{1}$对应的区间树如图\ref{image:intvtree1}所示，查询区间$[9, 11]$找到$s_{3}$中的$[4, 19]$。之后根据$s_{2}$的区间树得出$s_{4}$中的区间$[0, 19]$，根据$s_{5}$的区间树找出$s_{6}$的区间$[0, 3]$。至此得出所有的覆盖区间，结合$RME$的$offset$得到最终答案\\
 		$result = \{(s_{1}, 9, 3, "ick"), (s_{2}, 9, 3, "ick"), (s_{3}, 9, 3, "ick"),\\
 		{\qquad \qquad}(s_{4}, 9, 3, "ick"), (s_{5}, 1, 3, "ink"), (s_{6}, 1, 3, "ink")\}$
 \end{itemize}
@@ -417,18 +420,101 @@ $SAM$与后缀树相同，不管是空间复杂度，还是构造的时间复杂
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[scale=0.35]{image/intvtree1.png}
-	\caption{$s_{1}$的区间树}\label{imag_intvtree1}
+	\caption{$s_{1}$的区间树}\label{image:intvtree1}
 \end{figure}
 
 至此我们已经完成了在索引结构中进行k近似匹配的所有步骤，总结起来分以下三步：1）在主引用中利用$SAM$与动态规划匹配结果；2）通过与第一步类似的方式找出$COMP$中跨越$RME$的结果；3）通过区间树将之前的结果扩展到$RME$内部的结果。需要注意的是，第二步与第三步不能交换，因为跨过$RME$的结果可能被某个索引完全覆盖。
 
 
 
+\chapter{实验结果}
+实验的部分，我们将分别以基因突变序列与Wiki百科历史版本作为数据，考察算法的压缩效率及检索速度。
+
+
+
+\section{DNA突变序列}
+这里我们选取了人类基因组计划的染色体文本数据，对每条染色体取其前1,000行DNA序列，随后模拟自然环境下的变异、交叉互换等规则，生成一系列基因突变后的DNA序列。对数据进行压缩后，检索DNA片段"ATCGATCGG"在误差$k = 1$时出现的所有位置，结果如表格\ref{tab:dnacompress}所示。\par
+
+\begin{longtable}{crrrrrr}
+	\caption{关于基因突变序列的压缩结果}\label{tab:dnacompress}\\
+	\hline\hline
+	染色体编号 & 迭代次数 & 数据集大小 & 压缩时间 & 压缩率 & 检索时间 & 匹配次数 \\
+	\hline
+	\endfirsthead
+	\multicolumn{7}{r}{续表\ref{tab:dnacompress}}\\
+	\multicolumn{7}{c}{(接上页)}\\
+	\hline\hline
+	染色体编号 & 迭代次数 & 数据集大小 & 压缩时间 & 压缩率 & 检索时间 & 匹配次数 \\
+	\hline
+	\endhead
+	\hline
+	\multicolumn{7}{c}{(接下页)}
+	\endfoot
+	\hline
+	\endlastfoot
+	3501 & 256 & 12.18MB & 3.30s & 7.07\% & 0.00s & 56 \\
+	3501 & 4096 & 200.54MB & 105.02s & 7.63\% & 2.02s & 11137 \\
+	3502 & 256 & 12.18MB & 3.30s & 5.65\% & 0.01s & 294 \\
+	3502 & 4096 & 200.34MB & 84.67s & 5.70\% & 3.43s & 10239 \\
+	3503 & 256 & 12.18MB & 3.31s & 6.02\% & 0.00s & 0 \\
+	3503 & 4096 & 200.54MB & 72.17s & 4.54\% & 1.21s & 2111 \\
+	3504 & 256 & 12.18MB & 3.50s & 7.35\% & 0.00s & 0 \\
+	3504 & 4096 & 200.37MB & 98.26s & 6.70\% & 2.63s & 7448 \\
+	3505 & 256 & 12.18MB & 3.83s & 8.20\% & 0.00s & 404 \\
+	3505 & 4096 & 200.36MB & 106.59s & 7.63\% & 0.97s & 7340 \\
+	3506 & 256 & 12.18MB & 3.42s & 6.62\% & 0.00s & 266 \\
+	3506 & 4096 & 200.56MB & 91.50s & 6.27\% & 2.38s & 11455 \\
+	3507 & 256 & 12.18MB & 3.77s & 7.86\% & 0.00s & 305 \\
+	3507 & 4096 & 200.42MB & 106.08s & 7.72\% & 3.43s & 13525 \\
+	3508 & 256 & 12.18MB & 2.90s & 4.64\% & 0.00s & 51 \\
+	3508 & 4096 & 200.36MB & 64.84s & 4.24\% & 1.38s & 5620 \\
+	3509 & 256 & 12.18MB & 3.25s & 6.91\% & 0.00s & 412 \\
+	3509 & 4096 & 200.37MB & 86.38s & 6.03\% & 1.83s & 16015 \\
+	3510 & 256 & 12.18MB & 3.60s & 7.01\% & 0.00s & 511 \\
+	3510 & 4096 & 200.28MB & 103.80s & 7.40\% & 3.13s & 9758 \\
+	3511 & 256 & 12.18MB & 3.70s & 7.43\% & 0.01s & 209 \\
+	3511 & 4096 & 200.53MB & 103.73s & 7.32\% & 1.99s & 6674 \\
+	3512 & 256 & 12.18MB & 3.17s & 5.05\% & 0.00s & 250 \\
+	3512 & 4096 & 200.34MB & 82.98s & 5.74\% & 2.24s & 17235 \\
+	3513 & 256 & 12.21MB & 0.38s & 0.92\% & 0.00s & 0 \\
+	3513 & 4096 & 207.52MB & 5.00s & 0.12\% & 0.00s & 0 \\
+	3514 & 256 & 12.21MB & 0.38s & 0.92\% & 0.00s & 0 \\
+	3514 & 4096 & 207.52MB & 5.03s & 0.12\% & 0.00s & 0 \\
+	3515 & 256 & 12.18MB & 3.58s & 7.05\% & 0.00s & 34 \\
+	3515 & 4096 & 200.35MB & 99.40s & 6.86\% & 2.37s & 11209 \\
+	3516 & 256 & 12.18MB & 3.57s & 8.42\% & 0.00s & 814 \\
+	3516 & 4096 & 200.57MB & 111.26s & 8.25\% & 3.32s & 25034 \\
+	3517 & 256 & 12.18MB & 3.87s & 8.41\% & 0.00s & 0 \\
+	3517 & 4096 & 200.28MB & 121.32s & 8.26\% & 5.56s & 19668 \\
+	3518 & 256 & 12.18MB & 3.36s & 6.41\% & 0.00s & 508 \\
+	3518 & 4096 & 200.51MB & 78.89s & 5.54\% & 0.76s & 5907 \\
+	3519 & 256 & 12.18MB & 4.02s & 8.77\% & 0.00s & 256 \\
+	3519 & 4096 & 200.45MB & 117.96s & 8.38\% & 1.26s & 7725 \\
+	3520 & 256 & 12.18MB & 3.53s & 6.50\% & 0.00s & 254 \\
+	3520 & 4096 & 200.36MB & 93.47s & 6.52\% & 0.59s & 7660 \\
+	3521 & 256 & 12.21MB & 0.50s & 0.92\% & 0.00s & 0 \\
+	3521 & 4096 & 207.52MB & 7.03s & 0.12\% & 0.00s & 0 \\
+	3522 & 256 & 12.21MB & 0.40s & 0.92\% & 0.00s & 0 \\
+	3522 & 4096 & 207.52MB & 5.77s & 0.12\% & 0.00s & 0 \\
+	3523 & 256 & 12.18MB & 3.59s & 8.15\% & 0.00s & 507 \\
+	3523 & 4096 & 200.51MB & 114.35s & 8.26\% & 2.41s & 14108 \\
+	3524 & 256 & 12.18MB & 3.54s & 7.03\% & 0.01s & 512 \\
+	3524 & 4096 & 200.08MB & 90.57s & 6.33\% & 3.56s & 18422 \\
+\end{longtable}
+
+从上表可以看出，对于200MB左右的数据，压缩率在5\%到8\%左右，压缩耗时约100秒。而对于检索来说，大约可在2秒左右检索出10,000条结果。其中13、14、21与22号染色体的结果比较特别，压缩率都在1\%以下。这是因为这几条染色体的前1000行DNA序列都为空，也刚好说明了对于重复率越高的数据，压缩效率就越高。\par
+对于前4条染色体，我们分别勾画了压缩率与压缩时间关于数据规模的图标，如图\ref{}所示。\par
+
+从图中可以看出，不管是空间或者时间，大约都是线性复杂度的。
+
+
+\section{Wiki历史版本}
+
+
+
 \zihao{-5}\songti
 \bibliographystyle{sysuthesis}
 \bibliography{main}
-
-
 
 \appendix
 
