@@ -12,10 +12,10 @@ using namespace std;
 
 // Referential match entry
 struct RME {
-        short refid, start, length;
+        unsigned short refid, start, length;
         char mismatch;
 
-        RME(short i, short s, short l, char m):
+        RME(unsigned short i, unsigned short s, unsigned short l, char m):
                 refid(i), start(s), length(l), mismatch(m) {}
 
         bool operator==(const RME &r) const
@@ -30,9 +30,9 @@ struct hash<RME>
 {
         std::size_t operator()(const RME &r) const
         {
-                size_t seed = hash<short>()(r.refid);
-                seed = (seed ^ (hash<short>()(r.start) << 1)) >> 1;
-                seed = (seed ^ (hash<short>()(r.length) << 1)) >> 1;
+                size_t seed = hash<unsigned short>()(r.refid);
+                seed = (seed ^ (hash<unsigned short>()(r.start) << 1)) >> 1;
+                seed = (seed ^ (hash<unsigned short>()(r.length) << 1)) >> 1;
                 seed = (seed ^ (hash<char>()(r.mismatch) << 1)) >> 1;
                 return seed;
         }
@@ -60,9 +60,9 @@ struct RCS {
 
 // Match result
 struct Match {
-        short refid, start, length, score;
+        int refid, start, length, score;
 
-        Match(short i, short s, short l, short c):
+        Match(int i, int s, int l, int c):
                 refid(i), start(s), length(l), score(c) {}
 
         bool operator<(const Match &m) const

@@ -249,12 +249,9 @@ class StringDB {
                 }
                 if (cost > s.length()) {
                         // add to Pref
-                        for (int i = 0; i < s.length(); ++i) {
-                                pref->append(s[i]);
-                                pstr += s[i];
-                        }
+                        for (int i = 0; i < s.length(); ++i) pref->append(s[i]);
                         pref->append(0);
-                        pstr += (char)0;
+                        pstr += s + (char)0;
                         pseg.push_back(Pii(pref->length(), id));
                         rcs = RCS(RME(id, 0, s.length() - 1, s.back()));
                 }
@@ -282,12 +279,9 @@ class StringDB {
                                         break;
                                 }
                         }
-                        for (int j = l; j <= r; ++j) {
-                                ovlmap->append(s[j]);
-                                ostr += s[j];
-                        }
+                        for (int j = l; j <= r; ++j) ovlmap->append(s[j]);
                         ovlmap->append(0);
-                        ostr += (char)0;
+                        ostr += s.substr(l, r - l + 1) + (char)0;
                         oseg.push_back(make_pair(ovlmap->length(), Pii(id, l)));
                 }
         }
@@ -299,11 +293,11 @@ class StringDB {
                 while (getline(fin, buf)) str += buf + '\n';
                 addString(str);
                 fin.close();
-                cout << "Compression ratio: " << ratio() * 100 << "%" << endl;
-                cout << endl;
+                cout << "Finish " << cnts << ", compression ratio: " <<
+                        ratio() * 100 << "%" << endl;
         }
 
-        void query(const string &s, int k)
+        int query(const string &s, int k)
         {
                 vector<Match> ret;
                 match_pref(s, k, ret);
@@ -323,6 +317,7 @@ class StringDB {
                         setw(7) << it->score << " " << endl;
                 cout << string(32, '-') << endl;
                 cout << endl;
+                return ret.size();
         }
 
         int size() const

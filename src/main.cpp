@@ -20,8 +20,8 @@ typedef pair<int, int> Pii;
 const int inf = 0x3f3f3f3f;
 const LL infLL = 0x3f3f3f3f3f3f3f3fLL;
 
-const int maxql = 3;   // max query length
-const int maxk = 1;     // max edit distance error
+const int maxql = 20;   // max query length
+const int maxk = 5;     // max edit distance error
 
 int main(int argc, char* argv[])
 {
