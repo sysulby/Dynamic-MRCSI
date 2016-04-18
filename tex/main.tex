@@ -428,27 +428,30 @@ $SAM$与后缀树相同，不管是空间复杂度，还是构造的时间复杂
 
 
 \chapter{实验结果}
-实验的部分，我们将分别以基因突变序列与Wiki百科历史版本作为数据，考察算法的压缩效率及检索速度。
+实验的部分，我们将分别以DNA序列与Wiki百科历史版本作为实验数据，考察算法的压缩效率及检索速度。同时，通过数据量与压缩速度、压缩率的关系，考察算法是否为线性复杂度。
 
 
 
-\section{DNA突变序列}
+\section{实验平台及编译环境}
+本次实验的实验平台为OSX 10.11.4，CPU工作频率2.4GHz，内存8GB，编译器为Apple LLVM 7.3.0 (clang-703.0.29)。
+
+
+
+\section{突变DNA序列}
 这里我们选取了人类基因组计划的染色体文本数据，对每条染色体取其前1,000行DNA序列，随后模拟自然环境下的变异、交叉互换等规则，生成一系列基因突变后的DNA序列。对数据进行压缩后，检索DNA片段"ATCGATCGG"在误差$k = 1$时出现的所有位置，结果如表格\ref{tab:dnacompress}所示。\par
 
 \begin{longtable}{crrrrrr}
 	\caption{关于基因突变序列的压缩结果}\label{tab:dnacompress}\\
 	\hline\hline
-	染色体编号 & 迭代次数 & 数据集大小 & 压缩时间 & 压缩率 & 检索时间 & 匹配次数 \\
+	染色体编号 & 迭代次数 & 数据集大小 & 压缩时间 & 压缩率 & 检索时间 & 匹配数 \\
 	\hline
 	\endfirsthead
 	\multicolumn{7}{r}{续表\ref{tab:dnacompress}}\\
-	\multicolumn{7}{c}{(接上页)}\\
 	\hline\hline
-	染色体编号 & 迭代次数 & 数据集大小 & 压缩时间 & 压缩率 & 检索时间 & 匹配次数 \\
+	染色体编号 & 迭代次数 & 数据集大小 & 压缩时间 & 压缩率 & 检索时间 & 匹配数 \\
 	\hline
 	\endhead
 	\hline
-	\multicolumn{7}{c}{(接下页)}
 	\endfoot
 	\hline
 	\endlastfoot
@@ -502,13 +505,63 @@ $SAM$与后缀树相同，不管是空间复杂度，还是构造的时间复杂
 	3524 & 4096 & 200.08MB & 90.57s & 6.33\% & 3.56s & 18422 \\
 \end{longtable}
 
-从上表可以看出，对于200MB左右的数据，压缩率在5\%到8\%左右，压缩耗时约100秒。而对于检索来说，大约可在2秒左右检索出10,000条结果。其中13、14、21与22号染色体的结果比较特别，压缩率都在1\%以下。这是因为这几条染色体的前1000行DNA序列都为空，也刚好说明了对于重复率越高的数据，压缩效率就越高。\par
-对于前4条染色体，我们分别勾画了压缩率与压缩时间关于数据规模的图标，如图\ref{}所示。\par
+从上表可以看出，对于200MB左右的数据，算法的压缩率在5\%到8\%左右，压缩耗时约100秒。而对于检索来说，大约可在2秒左右检索出10,000条结果。其中13、14、21与22号染色体的结果比较特别，压缩率都在1\%以下。这是因为以上几条染色体的前1,000行DNA序列都为空，也刚好说明了对于重复率越高的数据，压缩效率就越高。\par
+对于前4条染色体，我们分别制作了压缩时间与压缩率关于数据规模的图表，如图\ref{fig:cchart}所示。\par
 
-从图中可以看出，不管是空间或者时间，大约都是线性复杂度的。
+\begin{figure}[htbp]
+	\centering
+	\subfloat[压缩时间]{
+		\includegraphics[scale=0.85]{image/ctime.png}
+	}\\
+	\subfloat[压缩率]{
+		\includegraphics[scale=0.85]{image/cratio.png}
+	}
+	\caption{压缩效果与数据规模的关系}\label{fig:cchart}
+\end{figure}
+
+从图表中可以看出，压缩时间与数据规模之间保持线性关系，而压缩率则基本不变。
+
 
 
 \section{Wiki历史版本}
+本节我们选取了Wiki百科部分词条的历史版本列表，考察对于文本文档数据的压缩效果。对于每个词条，我们分别选取了最近20条与最近100条历史记录，结果如表格\ref{tab:wikicompress}所示。\par
+
+\begin{longtable}{crrrrrr}
+	\caption{Wiki历史文档的压缩结果}\label{tab:wikicompress}\\
+	\hline\hline
+	Wiki词条 & 数据集大小 & 压缩时间 & 压缩率 & 模式串及误差 & 检索时间 & 匹配数 \\
+	\hline
+	\endfirsthead
+	\multicolumn{7}{r}{续表\ref{tab:dnacompress}}\\
+	\multicolumn{7}{c}{(接上页)}\\
+	\hline\hline
+	Wiki词条 & 数据集大小 & 压缩时间 & 压缩率 & 模式串及误差 & 检索时间 & 匹配数 \\
+	\hline
+	\endhead
+	\hline
+	\multicolumn{7}{c}{(接下页)}
+	\endfoot
+	\hline
+	\endlastfoot
+	Asimov & 1.65MB & 0.40s & 11.50\% & "Robot" 2 & 0.20s & 14740 \\
+	Asimov & 8.16MB & 1.65s & 8.37\% & "Asiimov" 1 & 0.87s & 38912 \\
+	AWP & 0.58MB & 0.15s & 17.00\% & "Kill" 2 & 0.79s & 16554 \\
+	AWP & 2.80MB & 0.79s & 13.91\% & "Sniper" 1 & 0.11s & 6260 \\
+	Warcraft & 0.43MB & 0.12s & 14.12\% & "Night" 2 & 0.00s & 2220 \\
+	Warcraft & 2.04MB & 0.53s & 11.87\% & "Elf" 1 & 0.00s & 1410 \\
+	JangJaeho & 0.38MB & 0.11s & 15.25\% & "Spirit" 2 & 0.00s & 640 \\
+	JangJaeho & 1.84MB & 0.46s & 12.13\% & "Moon" 1 & 0.78s & 10540 \\
+	ICPC & 0.32MB & 0.09s & 19.01\% & "Final" 2 & 1.27s & 17044 \\
+	ICPC & 1.49MB & 0.36s & 15.06\% & "China" 1 & 0.03s & 3340 \\
+	Algorithm & 1.59MB & 0.44s & 13.09\% & "KMP" 2 & 0.15s & 24265 \\
+	Algorithm & 7.99MB & 1.79s & 9.17\% & "Match" 1 & 0.00s & 3914 \\
+\end{longtable}
+
+从实验结果中可以看出，对于比DAN序列更加复杂的文本文档，该算法的压缩时间与检索时间基本保持不变。而压缩率则略有下降，约在8\%到20\%之间。总体来说来说，该算法对于文本文档依然有着优秀的压缩速度与压缩率，也保持了高速的近似检索能力。
+
+
+
+\chapter{结语}
 
 
 
