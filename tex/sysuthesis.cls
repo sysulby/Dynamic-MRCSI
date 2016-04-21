@@ -163,7 +163,7 @@
 		\\\hline
 		指导教师意见:\\
 		\@openingopinion\\
-		1、同意开题( ) 2、修改后开题( ) 3、重新开题( )\\\rule{0cm}{\baselineskip}\\
+		1、同意开题( √ ) 2、修改后开题( ) 3、重新开题( )\\\rule{0cm}{\baselineskip}\\
 		\hspace{2\ccwd}指导教师签名:\hfill 年\qquad 月\qquad 日\\\rule{0cm}{\baselineskip}\\
 	\end{longtable}
 }
@@ -200,7 +200,7 @@
 		\hline
 		{\bfseries 总体完成情况}& 指导教师意见：\\
 		& \@overallopinion\\
-		& 1、按计划完成，完成情况优（ ）\\
+		& 1、按计划完成，完成情况优（ √ ）\\
 		& 2、按计划完成，完成情况良（ ）\\
 		& 3、基本按计划完成，完成情况合格（ ）\\
 		& 4、完成情况不合格（ ）\\
@@ -282,8 +282,8 @@
 		\endfoot
 		\hline
 		\endlastfoot
-		指导教师评语：\\\@instructorcomment
-		成绩评定：\\\@instructorgrade
+		指导教师评语：\\\@instructorcomment\\
+		成绩评定：\@instructorgrade\\
 		指导教师签名：\hfill 年\qquad 月\qquad 日\\\rule{0cm}{\baselineskip}
 		\\\hline
 		答辩小组或专业负责人意见：\\\@majorcomment
